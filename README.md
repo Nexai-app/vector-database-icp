@@ -1,4 +1,11 @@
-# vector_database
+<h2 align="center">
+  Vector Database on ICP
+</h2>
+<p align="center">
+  <a href="https://github.com/Nexai-app/vector-database-icp/actions/workflows/integration-test.yml"><img src="https://github.com/Nexai-app/vector-database-icp/actions/workflows/integration-test.yml/badge.svg" /></a>
+</p>
+
+
 
 Welcome to your new vector_database project and to the internet computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
 
