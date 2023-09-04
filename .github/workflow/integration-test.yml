@@ -1,0 +1,29 @@
+name: Vector Database ICP integration Test
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [labeled,synchronize,reopened]
+
+jobs:
+  vector-database-integration-test:
+    if: ${{ github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'run unit') }}
+    runs-on:
+      labels: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - uses: aviate-labs/setup-dfx@v0.2.6
+      with:
+        dfx-version: 0.14.2
+    - run: |
+      dfx start --background
+      dfx generate
+      dfx deploy vector_database_backend
+      npm install 
+      npm test
+
