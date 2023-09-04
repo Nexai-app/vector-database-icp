@@ -20,11 +20,14 @@ jobs:
     - uses: aviate-labs/setup-dfx@v0.2.6
       with:
         dfx-version: 0.14.2
+    - run: |
+        dfx start --background
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
     - run: |
-        dfx start --background
+        rustup target add wasm32-unknown-unknown
+    - run: |
         dfx generate
         dfx canister create vector_database_backend
         dfx build vector_database_backend
