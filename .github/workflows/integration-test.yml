@@ -20,6 +20,9 @@ jobs:
     - uses: aviate-labs/setup-dfx@v0.2.6
       with:
         dfx-version: 0.14.2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
     - run: |
         dfx start --background
         dfx generate
