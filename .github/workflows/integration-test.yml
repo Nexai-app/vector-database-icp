@@ -21,10 +21,10 @@ jobs:
       with:
         dfx-version: 0.14.2
     - run: |
-      dfx start --background
-      dfx generate
-      dfx deploy vector_database_backend
-      npm install 
-      npm test
-      dfx stop
+        dfx start --background
+        dfx generate
+        dfx deploy vector_database_backend
+        npm install 
+        npm test
+        dfx stop
 
