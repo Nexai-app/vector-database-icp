@@ -26,6 +26,7 @@ jobs:
     - run: |
         dfx start --background
         dfx generate
+        dfx canister create vector_database_backend
         dfx build vector_database_backend
         dfx deploy vector_database_backend
         npm install 
