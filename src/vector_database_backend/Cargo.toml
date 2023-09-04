@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.8"
-ic-cdk = "0.7"
+ic-cdk = "0.10"
 ic-cdk-timers = "0.1" # Feel free to remove this dependency if you don't need timers
 ic-stable-structures = "0.5.6"
 instant-distance = { git = "https://github.com/bianyuanop/instant-distance", version = "0.6.1"}

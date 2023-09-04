@@ -6,13 +6,14 @@ use std::cell::RefCell;
 use config::EMBEDDING_LENGTH;
 use database::{db::Database, index::Vector};
 use ic_cdk::{update, query};
+use candid::{candid_method, export_service};
 use instant_distance::Search;
-use candid::export_service;
 
 thread_local! {
     static DB: RefCell<Database> = RefCell::new(Database::new(vec![], vec![]))
 }
 
+#[candid_method(query)]
 #[query]
 fn query(q: Vec<f32>, limit: i32) -> Result<Vec<String>, String> {
     if q.len() != EMBEDDING_LENGTH {
@@ -31,6 +32,7 @@ fn query(q: Vec<f32>, limit: i32) -> Result<Vec<String>, String> {
     Ok(res)
 }
 
+#[candid_method(update)]
 #[update]
 fn append_keys_values(keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), String> {
     if keys.len() != values.len() {
@@ -58,6 +60,7 @@ fn append_keys_values(keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), St
     res
 }
 
+#[candid_method(update)]
 #[update]
 fn build_index() -> Result<(), String> {
     DB.with(|db| {
@@ -68,9 +71,8 @@ fn build_index() -> Result<(), String> {
     Ok(())
 }
 
-export_service!();
-
 #[query(name = "__get_candid_interface_tmp_hack")]
 fn export_candid() -> String {
+    export_service!();
     __export_service()
 }
