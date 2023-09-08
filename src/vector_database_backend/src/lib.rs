@@ -2,8 +2,10 @@ extern  crate nalgebra as na;
 pub mod config;
 pub mod database;
 pub mod management;
+pub mod company;
 
 use std::cell::RefCell;
+use company::comp::{CompanyCollection, Company};
 use config::EMBEDDING_LENGTH;
 use database::{db::{Database}, index::Vector};
 use ic_cdk::{update, query, init};
@@ -14,101 +16,88 @@ use management::{AccessControl, Permission};
 thread_local! {
     static DB: RefCell<Database> = RefCell::new(Database::new(vec![], vec![]));
     static ACL: RefCell<AccessControl> = RefCell::new(AccessControl::new());
+
+    static COMP: RefCell<CompanyCollection> = RefCell::new(CompanyCollection::new());
 }
 
-#[candid_method(init)]
-#[init]
-fn init() {
-    let manager = ic_cdk::caller();
-    ACL.with(|acl| {
-        let mut acl = acl.borrow_mut();
-        let _ = acl.add_record(&Permission::ReadWrite, manager);
+#[candid_method(update)]
+#[update]
+fn register(description: String) -> Result<u32, String> {
+    COMP.with(|comp| {
+        let mut comps = comp.borrow_mut();
+        let owner = ic_cdk::caller();
+        let c = Company::new(owner, description);
+        Ok(comps.register(c))
     })
 }
 
 #[candid_method(query)]
-#[update]
-fn query(q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
+#[query]
+fn query(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
     if q.len() != EMBEDDING_LENGTH {
         return Err(String::from("query malformed"))
     }
 
-    let res = DB.with(|db| {
-        let db = db.borrow();
-        let mut search = Search::default();
-        let v = Vector::from(q);
+    COMP.with(|comp| {
+        let comps = comp.borrow();
 
-        db.query(&v, &mut search, limit)
-    });
+        match comps.get(id) {
+            Some(c) => {
+                let mut search = Search::default();
+                let key = Vector::from(q);
+                Ok(c.db.query(&key, &mut search, limit))
+            },
+            None => Err(String::from("No such comp"))
+        }
 
-
-    Ok(res)
+    })
 }
 
 #[candid_method(update)]
 #[update]
-fn append_keys_values(keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), String> {
+fn append_keys_values(id: u32, keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), String> {
     if keys.len() != values.len() {
         return Err(String::from("keys length is not euqal to values"));
     }
 
-    let res = DB.with(|db| {
-        let mut db = db.borrow_mut();
-        let mut points: Vec<Vector> = vec![];
-        let mut _values: Vec<String> = vec![];
+    COMP.with(|comp| {
+        let mut comps = comp.borrow_mut();   
+        match comps.get_mut(id) {
+            Some(c) => {
+                let db = &mut c.db;
+                let mut points: Vec<Vector> = vec![];
+                let mut _values: Vec<String> = vec![];
 
-        for i in 0..keys.len() {
-            let key = &keys[i];
-            if key.len() !=  EMBEDDING_LENGTH {
-                continue;
-            }
-            let point = Vector::from((*key).clone());
-            points.push(point);
-            _values.push(values[i].clone());
+                for i in 0..keys.len() {
+                    let key = &keys[i];
+                    if key.len() !=  EMBEDDING_LENGTH {
+                        continue;
+                    }
+                    let point = Vector::from((*key).clone());
+                    points.push(point);
+                    _values.push(values[i].clone());
+                }
+
+                db.append(&mut points, &mut _values)
+            },
+            None => Err(String::from("No such comp"))
         }
-
-        db.append(&mut points, &mut _values)
-    });
-
-    res
+    })
 }
 
 #[candid_method(update)]
 #[update]
-fn build_index() -> Result<(), String> {
-    DB.with(|db| {
-        let mut db = db.borrow_mut();
-        db.build_index()
-    });
-
-    Ok(())
-}
-
-#[candid_method(update)]
-#[update]
-fn add_acl_record(permission: u32, p: Principal) -> Result<bool, String> {
-    ACL.with(|acl| {
-        let mut acl = acl.borrow_mut();
-        acl.add_record(&permission.into(), p)
-    })
-}
-
-// ACL
-fn allow_read() -> Result<(), String> {
-    let user = ic_cdk::api::caller();
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-        if acl.allow_read(&user) { Ok(()) }
-        else { Err(String::from("No priviledge to read")) } 
-    })
-}
-
-fn allow_write() -> Result<(), String> {
-    let user = ic_cdk::api::caller();
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-        if acl.allow_write(&user) { Ok(()) }
-        else { Err(String::from("No priviledge to write")) } 
+fn build_index(id: u32) -> Result<(), String> {
+    COMP.with(|comp| {
+        let mut comps = comp.borrow_mut();
+        match comps.get_mut(id) {
+            Some(c) => {
+                let db = &mut c.db;
+                db.build_index();
+                Ok(())
+            },
+            None => Err(String::from("No such comp"))
+        }
     })
 }
 
