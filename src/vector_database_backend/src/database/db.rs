@@ -1,5 +1,5 @@
 use super::index::{Vector, generate_index};
-use instant_distance::{HnswMap, Search, Point};
+use instant_distance::{HnswMap, Search};
 
 pub struct Database {
     inner: HnswMap<Vector, String>,
