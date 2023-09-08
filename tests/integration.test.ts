@@ -4,6 +4,7 @@ import { Principal } from "@dfinity/principal";
 import {array, random} from 'vectorious';
 import {createActor} from '../src/declarations/vector_database_backend'
 import canisterIds from '../.dfx/local/canister_ids.json';
+import {Secp256k1KeyIdentity} from '@dfinity/identity-secp256k1';
 
 const EMBEDDING_SIZE = 768;
 
@@ -23,7 +24,7 @@ describe("vector database should work", async () => {
     let vdb = createActor(canisterIds.vector_database_backend.local, {
         agentOptions: {
             host: "http://127.0.0.1:4943",
-            fetch: fetch
+            fetch: fetch,
         }
     });
 
