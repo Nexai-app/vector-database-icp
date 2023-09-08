@@ -28,8 +28,11 @@ describe("vector database should work", async () => {
     });
 
     let a = genRandomEmbedding();
+    a[0] = 1;
     let b = genRandomEmbedding();
+    b[0] = 0.5;
     let c = genRandomEmbedding();
+    c[0] = 0;
     let embds = [a, b, c];
     let values = [
         "question 1?",
@@ -53,6 +56,8 @@ describe("vector database should work", async () => {
         result = result as {'Ok': Array<[number, string]>};
         const vs = result.Ok;
         expect(vs.length).eq(1);
+        console.log(vs)
+        console.log(values)
         expect(vs[0][1]).eq(values[0]);
     })
 })

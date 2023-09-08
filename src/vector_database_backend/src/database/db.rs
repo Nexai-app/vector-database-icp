@@ -23,7 +23,7 @@ impl Database {
         for _ in 0..limit {
             match iter.next() {
                 Some(v) => {
-                    res.push((v.distance, (*v.value).clone()))
+                    res.push((v.point.cos_sim(key), (*v.value).clone()))
                 },
                 None => break
             }

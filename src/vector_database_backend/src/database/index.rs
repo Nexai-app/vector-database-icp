@@ -1,6 +1,7 @@
 use crate::config::EMBEDDING_LENGTH;
 use instant_distance::{Builder, HnswMap, Point};
 use na::SVector;
+use nalgebra::ComplexField;
 
 pub fn generate_index(points: Vec<Vector>, values: Vec<String>) -> HnswMap<Vector, String> {
     Builder::default().build(points, values)
@@ -13,7 +14,8 @@ pub struct Vector {
 
 impl instant_distance::Point for Vector { 
     fn distance(&self, other: &Self) -> f32 {
-        self.data.dot(&other.data) / (self.data.norm() * other.data.norm())
+        let diff = self.data - other.data;
+        diff.dot(&diff).norm1()
     }
 }
 
@@ -34,7 +36,7 @@ impl From<Vec<f32>> for Vector {
 }
 
 impl Vector {
-    pub fn to_list(&self) -> Vec<u8> {
-        self.to_list()
+    pub fn cos_sim(&self, other: &Vector) -> f32 {
+        self.data.dot(&other.data) / (self.data.norm() * other.data.norm())
     }
 }
