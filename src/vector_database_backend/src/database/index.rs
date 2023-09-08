@@ -34,8 +34,8 @@ impl From<Vec<f32>> for Vector {
     }
 }
 
-// impl Vector {
-//     pub fn random() -> Self {
-//         Vector { data: SVector::new_random() }
-//     }
-// }
+impl Vector {
+    pub fn to_list(&self) -> Vec<u8> {
+        self.to_list()
+    }
+}

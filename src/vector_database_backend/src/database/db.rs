@@ -1,5 +1,5 @@
 use super::index::{Vector, generate_index};
-use instant_distance::{HnswMap, Search};
+use instant_distance::{HnswMap, Search, Point};
 
 pub struct Database {
     inner: HnswMap<Vector, String>,
@@ -13,16 +13,18 @@ impl Database {
         Database { 
             keys: keys.clone(), 
             values: values.clone(), 
-            inner: generate_index(keys, values)
+            inner: generate_index(keys, values),
         }
     }
 
-    pub fn query(&self, key: &Vector, search: &mut Search, limit: i32) -> Vec<String> {
-        let mut res = vec![];
+    pub fn query(&self, key: &Vector, search: &mut Search, limit: i32) -> Vec<(f32, String)> {
+        let mut res: Vec<(f32, String)> = vec![];
         let mut iter = self.inner.search(key, search);
         for _ in 0..limit {
             match iter.next() {
-                Some(v) => res.push((*v.value).clone()),
+                Some(v) => {
+                    res.push((v.distance, (*v.value).clone()))
+                },
                 None => break
             }
         };

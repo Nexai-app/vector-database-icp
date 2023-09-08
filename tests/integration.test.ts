@@ -50,9 +50,9 @@ describe("vector database should work", async () => {
         // embedding, limit
         let result = await vdb.query(a, 1);
         expect('Ok' in result).eq(true);
-        result = result as {'Ok': Array<string>};
-        const values = result.Ok;
-        expect(values.length).eq(1);
-        expect(values[0]).eq(values[0]);
+        result = result as {'Ok': Array<[number, string]>};
+        const vs = result.Ok;
+        expect(vs.length).eq(1);
+        expect(vs[0][1]).eq(values[0]);
     })
 })

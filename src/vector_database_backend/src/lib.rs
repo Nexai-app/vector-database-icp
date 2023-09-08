@@ -4,7 +4,7 @@ pub mod database;
 
 use std::cell::RefCell;
 use config::EMBEDDING_LENGTH;
-use database::{db::Database, index::Vector};
+use database::{db::{Database}, index::Vector};
 use ic_cdk::{update, query};
 use candid::{candid_method, export_service};
 use instant_distance::Search;
@@ -15,7 +15,7 @@ thread_local! {
 
 #[candid_method(query)]
 #[query]
-fn query(q: Vec<f32>, limit: i32) -> Result<Vec<String>, String> {
+fn query(q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
     if q.len() != EMBEDDING_LENGTH {
         return Err(String::from("query malformed"))
     }

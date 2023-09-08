@@ -1476,6 +1476,8 @@ dependencies = [
  "ic-stable-structures",
  "instant-distance",
  "nalgebra",
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]
