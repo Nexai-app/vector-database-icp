@@ -29,7 +29,12 @@ jobs:
         rustup target add wasm32-unknown-unknown
     - run: |
         dfx generate
-        ./scripts/redeploy.sh
+
+        dfx identity import owner --seed-file keys/owner.seed
+        dfx identity use owner
+        dfx canister create vector_database_backend
+        dfx deploy vector_database_backend
+
         npm install 
         npm test
         dfx stop
