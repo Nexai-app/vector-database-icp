@@ -2,50 +2,56 @@ use std::collections::HashSet;
 
 use candid::types::principal::Principal;
 
-// similar to iota
-pub enum Permission {
-    Unprivileged = 0,
-    Read, 
-    Write,
-    ReadWrite,
-}
-
-impl From<u32> for Permission {
-    fn from(value: u32) -> Self {
-        match value {
-            1 => Permission::Read, 
-            2 => Permission::Write,
-            3 => Permission::ReadWrite,
-            _ => Permission::Unprivileged,
-        } 
-    }
-}
-
 pub struct AccessControl {
-    read: HashSet<Principal>,
-    write: HashSet<Principal>,
-    read_write: HashSet<Principal>,
+    owner: Principal, 
+    pub access_list_enabled: bool,
+    managers: HashSet<Principal>,
+    accessers: HashSet<Principal>,
 }
 
 impl AccessControl {
-    pub fn allow_read(&self, p: &Principal) -> bool {
-        self.read.contains(p) || self.read_write.contains(p)
-    }
-
-    pub fn allow_write(&self, p: &Principal) -> bool {
-        self.write.contains(p) || self.read_write.contains(p)
-    }
-
-    pub fn add_record(&mut self, permission: &Permission, p: Principal) -> Result<bool, String> {
-        match permission {
-            Permission::Read => Ok(self.read.insert(p)),
-            Permission::Write => Ok(self.write.insert(p)),
-            Permission::ReadWrite => Ok(self.read_write.insert(p)),
-            _ => Err(String::from("Unpriviledged"))
-        }
-    }
-
     pub fn new() -> Self {
-        AccessControl { read: HashSet::new(), write: HashSet::new(), read_write: HashSet::new() }
+        AccessControl { owner: Principal::anonymous(), access_list_enabled: true, managers: HashSet::new(), accessers: HashSet::new() }
     }
+
+    pub fn set_owner(&mut self, owner: Principal) {
+        self.owner = owner;
+    }
+
+    pub fn is_owner(&self, p: Principal) -> bool {
+        self.owner == p
+    }
+
+    pub fn add_manager(&mut self, manager: Principal) -> bool  {
+        self.managers.insert(manager)
+    }
+
+    pub fn add_accesser(&mut self, accesser: Principal) -> bool {
+        self.accessers.insert(accesser)
+    }
+
+    pub fn allow_access(&self, p: &Principal) -> bool {
+        self.accessers.contains(p)
+    }
+    
+    pub fn allow_manage(&self, p: &Principal) -> bool {
+        self.managers.contains(p)
+    }
+
+    pub fn enable_access_list(&mut self) {
+        self.access_list_enabled = true;
+    }
+
+    pub fn disable_access_list(&mut self) {
+        self.access_list_enabled = false;
+    }
+
+    pub fn remove_manager(&mut self, manager: &Principal) -> bool {
+        self.managers.remove(manager)
+    }
+
+    pub fn remove_accesser(&mut self, accesser: &Principal) -> bool {
+        self.accessers.remove(accesser)
+    }
+
 }
