@@ -26,6 +26,7 @@ async fn init() {
     ACL.with(|acl| {
         let mut acl = acl.borrow_mut();
         acl.set_owner(caller);
+        acl.add_manager(caller);
     })
 }
 
@@ -43,7 +44,7 @@ fn register(description: String) -> Result<u32, String> {
 
 #[candid_method(query)]
 #[query]
-fn query(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
+fn get_similar(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
     if q.len() != EMBEDDING_LENGTH {
         return Err(String::from("query malformed"))
     }
@@ -159,6 +160,17 @@ fn remove_accesser(accesser: Principal) -> bool {
     })
 }
 
+#[candid_method(update)]
+#[update(guard = "only_manager")]
+fn set_acl_enabled(enable: bool) -> Result<(), String> {
+    ACL.with(|acl| {
+        let mut acl = acl.borrow_mut();
+        acl.access_list_enabled = enable;
+    });
+
+    Ok(())
+}
+
 
 /// Candid
 #[query(name = "__get_candid_interface_tmp_hack")]
@@ -200,7 +212,7 @@ fn only_allowed_accesser() -> Result<(), String> {
     ACL.with(|acl| {
         let acl = acl.borrow();
 
-        if acl.access_list_enabled && acl.allow_access(&caller) {
+        if !acl.access_list_enabled || acl.allow_access(&caller) {
             Ok(())
         } else {
             Err(String::from("Contact admin to gain access"))

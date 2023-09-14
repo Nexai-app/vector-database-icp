@@ -150,6 +150,25 @@ describe("access control should work", async () => {
         let res1 = await vdb_comp2.build_index(comp1_id) as {Err: string};
         expect(res1.Err).eq("caller not owner of company or not manager");
     })
+
+    it("disable access list to allow everyone to register", async () => {
+        let res = await vdb.set_acl_enabled(false) as {'Ok': null};
+        expect('Ok' in res).eq(true);
+    })
+
+    it("should allow anyone to register", async () => {
+        let vdb_anyone = createActor(canisterIds.vector_database_backend.local, {
+            agentOptions: {
+                host: "http://127.0.0.1:4943",
+                fetch,
+                // random one
+                identity: Ed25519KeyIdentity.generate()
+            }
+        });
+
+        let res = await vdb_anyone.register("anyone can register") as {Ok: number};
+        expect('Ok' in res).eq(true);
+    })
 })
 
 
@@ -211,7 +230,7 @@ describe("vector database should work", async () => {
 
     it("should return a same value corresponding to embedding", async () => {
         // embedding, limit
-        let result = await vdb.query(company_id, a, 1);
+        let result = await vdb.get_similar(company_id, a, 1);
         expect('Ok' in result).eq(true);
         result = result as {'Ok': Array<[number, string]>};
         const vs = result.Ok;
