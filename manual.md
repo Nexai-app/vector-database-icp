@@ -35,3 +35,28 @@ This step must be done after inserting a set of keys and values, or those keys a
 This step is usually for normal users, so this interface is also permissionless.
 
 ![](./imgs/query.png)
+
+
+
+## Use case - use with a LLM
+
+1. feed company description to LLM in template 
+
+```
+Please answer users' questions base on the company description: <Description>
+```
+
+2. encode user question into embedding(use sbert)
+3. query vdb using `get_similar_ones`, it will return similarity value along with question-answer-pairs. 
+4. feed LLM with template:
+
+```
+Here we have a set of existing similar questions:
+<question-answers(values)-1>
+<question-answers(values)-2>
+...
+<question-answers(values)-limit>
+Please answer question <User Question>
+```
+
+5. Get answer from LLM
