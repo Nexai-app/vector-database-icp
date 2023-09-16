@@ -1,15 +1,15 @@
 {
-    "devDependencies": {
-        "@dfinity/agent": "^0.19.2",
-        "@dfinity/candid": "^0.19.2",
-        "@dfinity/identity": "^0.19.2",
-        "@dfinity/identity-secp256k1": "^0.19.2",
-        "@dfinity/principal": "^0.19.2",
-        "isomorphic-fetch": "^3.0.0",
-        "vectorious": "^6.1.11",
-        "vitest": "^0.34.3"
-    },
-    "scripts": {
-        "test": "vitest"
-    }
+  "devDependencies": {
+    "@dfinity/agent": "^0.19.2",
+    "@dfinity/candid": "^0.19.2",
+    "@dfinity/identity": "^0.19.2",
+    "@dfinity/identity-secp256k1": "^0.19.2",
+    "@dfinity/principal": "^0.19.2",
+    "isomorphic-fetch": "^3.0.0",
+    "vectorious": "^6.1.11",
+    "vitest": "^0.34.3"
+  },
+  "scripts": {
+    "test": "vitest"
+  }
 }

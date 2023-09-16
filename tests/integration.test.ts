@@ -69,6 +69,7 @@ describe("access control should work", async () => {
 
     it("should add manager", async () => {
         let result = await vdb.add_manager(manager.getPrincipal()) ;
+        console.log("manager", result)
         expect(result).eq(true);
     });
 
