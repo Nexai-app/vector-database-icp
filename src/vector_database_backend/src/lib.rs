@@ -161,6 +161,18 @@ fn remove_accesser(accesser: Principal) -> bool {
     })
 }
 
+/// set flag `access_list_enabled`
+#[candid_method(update)]
+#[update(guard = "only_manager")]
+fn set_acl_enabled(enable: bool) -> Result<(), String> {
+    ACL.with(|acl| {
+        let mut acl = acl.borrow_mut();
+        acl.access_list_enabled = enable;
+    });
+
+    Ok(())
+}
+
 
 /// Candid
 #[query(name = "__get_candid_interface_tmp_hack")]
