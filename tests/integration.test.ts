@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import exp from "vectorious/dist/core/exp";
 
 import * as crypto from 'node:crypto';
+import { AccessControl } from "../src/declarations/vector_database_backend/vector_database_backend.did";
 
 const EMBEDDING_SIZE = 768;
 
@@ -239,4 +240,19 @@ describe("vector database should work", async () => {
         console.log(values)
         expect(vs[0][1]).eq(values[0]);
     })
+})
+
+test("states should be there", async () => {
+    let vdb = createActor(canisterIds.vector_database_backend.local, {
+        agentOptions: {
+            host: "http://127.0.0.1:4943",
+            fetch,
+        }
+    });
+
+    let states = await vdb.acl_states();
+    expect(states.length).eq(1);
+    states = states as [AccessControl];
+    let state = states[0];
+    console.log(state);
 })

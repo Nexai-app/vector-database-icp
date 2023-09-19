@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 
-use candid::types::principal::Principal;
+use candid::{types::principal::Principal, CandidType};
 
+#[derive(Clone, CandidType)]
 pub struct AccessControl {
     owner: Principal, 
     pub access_list_enabled: bool,
-    managers: HashSet<Principal>,
-    accessers: HashSet<Principal>,
+    pub managers: HashSet<Principal>,
+    pub accessers: HashSet<Principal>,
 }
 
 impl AccessControl {

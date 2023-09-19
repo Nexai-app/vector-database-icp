@@ -1,7 +1,14 @@
+type AccessControl = record {
+  accessers : vec principal;
+  managers : vec principal;
+  owner : principal;
+  access_list_enabled : bool;
+};
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : vec record { float32; text }; Err : text };
 type Result_2 = variant { Ok : nat32; Err : text };
 service : () -> {
+  acl_states : () -> (opt AccessControl) query;
   add_accesser : (principal) -> (bool);
   add_manager : (principal) -> (bool);
   append_keys_values : (nat32, vec vec float32, vec text) -> (Result);

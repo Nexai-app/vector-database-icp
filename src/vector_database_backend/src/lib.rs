@@ -164,11 +164,23 @@ fn add_accesser(accesser: Principal) -> bool {
 
 /// remove an accesser
 #[candid_method(update)]
-#[update(guard = "only_manager")]
+// #[update(guard = "only_manager")]
+#[update]
 fn remove_accesser(accesser: Principal) -> bool {
     ACL.with(|acl| {
         let mut acl = acl.borrow_mut();
         acl.remove_accesser(&accesser)
+    })
+}
+
+
+#[candid_method(query)]
+#[update(guard = "only_manager")]
+fn acl_states() -> Option<AccessControl> {
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+
+        Some((*acl).clone())
     })
 }
 
