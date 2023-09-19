@@ -250,7 +250,7 @@ test("states should be there", async () => {
         }
     });
 
-    let states = await vdb.acl_states();
+    let states = await vdb.states();
     expect(states.length).eq(1);
     states = states as [AccessControl];
     let state = states[0];

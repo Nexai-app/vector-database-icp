@@ -164,8 +164,7 @@ fn add_accesser(accesser: Principal) -> bool {
 
 /// remove an accesser
 #[candid_method(update)]
-// #[update(guard = "only_manager")]
-#[update]
+#[update(guard = "only_manager")]
 fn remove_accesser(accesser: Principal) -> bool {
     ACL.with(|acl| {
         let mut acl = acl.borrow_mut();
@@ -174,15 +173,17 @@ fn remove_accesser(accesser: Principal) -> bool {
 }
 
 
-#[candid_method(query)]
-#[update(guard = "only_manager")]
-fn acl_states() -> Option<AccessControl> {
-    ACL.with(|acl| {
-        let acl = acl.borrow();
+/// buggy codes
+// #[candid_method(query)]
+// // #[update(guard = "only_manager")]
+// #[update(guard = "only_manager")]
+// fn states() -> Option<AccessControl> {
+//     ACL.with(|acl| {
+//         let acl = acl.borrow();
 
-        Some((*acl).clone())
-    })
-}
+//         Some((*acl).clone())
+//     })
+// }
 
 /// set flag `access_list_enabled`
 #[candid_method(update)]
