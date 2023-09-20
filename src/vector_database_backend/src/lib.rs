@@ -34,7 +34,7 @@ async fn init() {
 
 /// for company user to register
 #[candid_method(update)]
-#[update(guard = "only_allowed_accesser")]
+#[update]
 fn register(description: String) -> Result<u32, String> {
     COMP.with(|comp| {
         let mut comps = comp.borrow_mut();
@@ -73,10 +73,10 @@ fn get_similar(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, S
 #[candid_method(update)]
 #[update]
 fn append_keys_values(id: u32, keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), String> {
-    let caller = ic_cdk::caller();
-    if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
-        return Err(String::from("caller not owner of company or not manager"))
-    }
+    // let caller = ic_cdk::caller();
+    // if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
+    //     return Err(String::from("caller not owner of company or not manager"))
+    // }
 
     if keys.len() != values.len() {
         return Err(String::from("keys length is not euqal to values"));
@@ -113,10 +113,10 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f32>>, values: Vec<String>) -> Resu
 #[candid_method(update)]
 #[update]
 fn build_index(id: u32) -> Result<(), String> {
-    let caller = ic_cdk::caller();
-    if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
-        return Err(String::from("caller not owner of company or not manager"))
-    }
+    // let caller = ic_cdk::caller();
+    // if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
+    //     return Err(String::from("caller not owner of company or not manager"))
+    // }
 
     COMP.with(|comp| {
         let mut comps = comp.borrow_mut();
