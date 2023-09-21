@@ -44,11 +44,11 @@ fn register(description: String) -> Result<u32, String> {
     })
 }
 
-/// get similar `limit` numbers of records([(similarity:f32, question-answer-pair:string)]) from vector database
+/// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
 /// or throws an error(String) 
 #[candid_method(query)]
 #[query]
-fn get_similar(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, String> {
+fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, String> {
     if q.len() != EMBEDDING_LENGTH {
         return Err(String::from("query malformed"))
     }
@@ -72,7 +72,7 @@ fn get_similar(id: u32, q: Vec<f32>, limit: i32) -> Result<Vec<(f32, String)>, S
 /// it either returns Ok() or throw an error(Unprivileged)
 #[candid_method(update)]
 #[update]
-fn append_keys_values(id: u32, keys: Vec<Vec<f32>>, values: Vec<String>) -> Result<(), String> {
+fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Result<(), String> {
     // let caller = ic_cdk::caller();
     // if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
     //     return Err(String::from("caller not owner of company or not manager"))

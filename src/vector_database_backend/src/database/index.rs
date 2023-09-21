@@ -9,13 +9,13 @@ pub fn generate_index(points: Vec<Vector>, values: Vec<String>) -> HnswMap<Vecto
 
 #[derive(Copy, Clone, Debug)] 
 pub struct Vector {
-    data: SVector<f32, EMBEDDING_LENGTH>
+    data: SVector<f64, EMBEDDING_LENGTH>
 }
 
 impl instant_distance::Point for Vector { 
     fn distance(&self, other: &Self) -> f32 {
         let diff = self.data - other.data;
-        diff.dot(&diff).norm1()
+        diff.dot(&diff).norm1() as f32
     }
 }
 
@@ -28,15 +28,15 @@ impl PartialEq for Vector {
     }
 }
 
-impl From<Vec<f32>> for Vector {
-    fn from(value: Vec<f32>) -> Self {
+impl From<Vec<f64>> for Vector {
+    fn from(value: Vec<f64>) -> Self {
         let svec = SVector::from_vec(value);
         Vector { data:  svec}
     }
 }
 
 impl Vector {
-    pub fn cos_sim(&self, other: &Vector) -> f32 {
+    pub fn cos_sim(&self, other: &Vector) -> f64 {
         self.data.dot(&other.data) / (self.data.norm() * other.data.norm())
     }
 }

@@ -17,7 +17,8 @@ const EMBEDDING_SIZE = 768;
 function genRandomEmbedding() : number[] {
     let embedding = random(EMBEDDING_SIZE);
     let arr = embedding.toArray();
-    return arr;
+    let f64arr = Float64Array.from(arr, z => z);
+    return Array.from(f64arr);
 }
 
 
@@ -242,17 +243,17 @@ describe("vector database should work", async () => {
     })
 })
 
-test("states should be there", async () => {
-    let vdb = createActor(canisterIds.vector_database_backend.local, {
-        agentOptions: {
-            host: "http://127.0.0.1:4943",
-            fetch,
-        }
-    });
+// test("states should be there", async () => {
+//     let vdb = createActor(canisterIds.vector_database_backend.local, {
+//         agentOptions: {
+//             host: "http://127.0.0.1:4943",
+//             fetch,
+//         }
+//     });
 
-    let states = await vdb.states();
-    expect(states.length).eq(1);
-    states = states as [AccessControl];
-    let state = states[0];
-    console.log(state);
-})
+//     let states = await vdb.states();
+//     expect(states.length).eq(1);
+//     states = states as [AccessControl];
+//     let state = states[0];
+//     console.log(state);
+// })

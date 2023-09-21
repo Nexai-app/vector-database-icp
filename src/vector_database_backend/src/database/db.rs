@@ -17,8 +17,8 @@ impl Database {
         }
     }
 
-    pub fn query(&self, key: &Vector, search: &mut Search, limit: i32) -> Vec<(f32, String)> {
-        let mut res: Vec<(f32, String)> = vec![];
+    pub fn query(&self, key: &Vector, search: &mut Search, limit: i32) -> Vec<(f64, String)> {
+        let mut res: Vec<(f64, String)> = vec![];
         let mut iter = self.inner.search(key, search);
         for _ in 0..limit {
             match iter.next() {
