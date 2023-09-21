@@ -26,10 +26,13 @@ async fn init() {
     ACL.with(|acl| {
         let mut acl = acl.borrow_mut();
         acl.set_owner(caller);
+        acl.add_manager(caller);
     })
 }
 
-/// APIs for vector database business
+// APIs for vector database business
+
+/// for company user to register
 #[candid_method(update)]
 #[update]
 fn register(description: String) -> Result<u32, String> {
@@ -65,6 +68,8 @@ fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, S
     })
 }
 
+/// append keys(embeddings) and values(question-answer-pairs) into database
+/// it either returns Ok() or throw an error(Unprivileged)
 #[candid_method(update)]
 #[update]
 fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Result<(), String> {
@@ -103,6 +108,8 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
     })
 }
 
+/// build index for uploaded keys(embeddings) and values(question-answers-pairs)
+/// this is done manually, and function `append_keys_values` doesn't do it automatically since the function call is expensive
 #[candid_method(update)]
 #[update]
 fn build_index(id: u32) -> Result<(), String> {
@@ -124,16 +131,18 @@ fn build_index(id: u32) -> Result<(), String> {
     })
 }
 
-/// Manage functions
+// Manage functions
+/// add a manager
 #[candid_method(update)]
 #[update(guard = "only_owner")]
 fn add_manager(manager: Principal) -> bool {
-   ACL.with(|acl| {
+    ACL.with(|acl| {
         let mut acl = acl.borrow_mut();
         acl.add_manager(manager)
     })
 }
 
+/// remove a manager
 #[candid_method(update)]
 #[update(guard = "only_owner")]
 fn remove_manager(manager: Principal) -> bool {
@@ -143,6 +152,7 @@ fn remove_manager(manager: Principal) -> bool {
     })
 }
 
+/// add a accesser to allow access, only valid when vdb setting `access_list_enabled` to be true
 #[candid_method(update)]
 #[update(guard = "only_manager")]
 fn add_accesser(accesser: Principal) -> bool {
@@ -152,6 +162,7 @@ fn add_accesser(accesser: Principal) -> bool {
     })
 }
 
+/// remove an accesser
 #[candid_method(update)]
 #[update(guard = "only_manager")]
 fn remove_accesser(accesser: Principal) -> bool {
@@ -160,6 +171,19 @@ fn remove_accesser(accesser: Principal) -> bool {
         acl.remove_accesser(&accesser)
     })
 }
+
+
+/// buggy codes
+// #[candid_method(query)]
+// // #[update(guard = "only_manager")]
+// #[update(guard = "only_manager")]
+// fn states() -> Option<AccessControl> {
+//     ACL.with(|acl| {
+//         let acl = acl.borrow();
+
+//         Some((*acl).clone())
+//     })
+// }
 
 /// set flag `access_list_enabled`
 #[candid_method(update)]
@@ -174,7 +198,7 @@ fn set_acl_enabled(enable: bool) -> Result<(), String> {
 }
 
 
-/// Candid
+// Candid
 #[query(name = "__get_candid_interface_tmp_hack")]
 fn export_candid() -> String {
     export_service!();
@@ -182,7 +206,7 @@ fn export_candid() -> String {
 }
 
 
-/// Access Control helper functions
+// Access Control helper functions
 fn only_owner() -> Result<(), String> {
     let caller = ic_cdk::caller();
     ACL.with(|acl| {
@@ -214,7 +238,7 @@ fn only_allowed_accesser() -> Result<(), String> {
     ACL.with(|acl| {
         let acl = acl.borrow();
 
-        if acl.access_list_enabled && acl.allow_access(&caller) {
+        if !acl.access_list_enabled || acl.allow_access(&caller) {
             Ok(())
         } else {
             Err(String::from("Contact admin to gain access"))
