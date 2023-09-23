@@ -5,15 +5,6 @@
       "type": "rust",
       "package": "vector_database_backend",
       "candid": "src/vector_database_backend/vector_database_backend.did"
-    },
-    "vector_database_frontend": {
-      "type": "assets",
-      "source": [
-        "src/vector_database_frontend/assets"
-      ],
-      "dependencies": [
-        "vector_database_backend"
-      ]
     }
   },
   "defaults": {
