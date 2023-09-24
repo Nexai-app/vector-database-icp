@@ -10,9 +10,9 @@ import * as fs from 'fs';
 import exp from "vectorious/dist/core/exp";
 
 import * as crypto from 'node:crypto';
-import { AccessControl } from "../src/declarations/vector_database_backend/vector_database_backend.did";
+// import { AccessControl } from "../src/declarations/vector_database_backend/vector_database_backend.did";
 
-const EMBEDDING_SIZE = 768;
+const EMBEDDING_SIZE = 384;
 
 function genRandomEmbedding() : number[] {
     let embedding = random(EMBEDDING_SIZE);
