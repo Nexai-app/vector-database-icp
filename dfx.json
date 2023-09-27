@@ -4,7 +4,12 @@
     "vector_database_backend": {
       "type": "rust",
       "package": "vector_database_backend",
-      "candid": "src/vector_database_backend/vector_database_backend.did"
+      "candid": "src/vector_database_backend/vector_database_backend.did",
+      "pullable": {
+        "wasm_url": "https://github.com/Nexai-app/nexi-v1/releases/download/latest/vector_database_backend.wasm",
+        "dependencies": [],
+        "init_guide": "null"
+      }
     },
     "vector_database_frontend": {
       "type": "assets",
