@@ -4,7 +4,12 @@
     "vector_database_backend": {
       "type": "rust",
       "package": "vector_database_backend",
-      "candid": "src/vector_database_backend/vector_database_backend.did"
+      "candid": "src/vector_database_backend/vector_database_backend.did",
+      "pullable": {
+        "wasm_url": "https://github.com/Nexai-app/vector-database-icp/releases/download/0.1.0/vector_database_backend.wasm",
+        "dependencies": [],
+        "init_guide": "null"
+      }
     }
   },
   "defaults": {
