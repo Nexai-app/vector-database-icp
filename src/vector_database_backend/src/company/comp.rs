@@ -1,6 +1,6 @@
 use std::{collections::{BTreeMap, HashMap}, hash::Hash};
 
-use candid::Principal;
+use candid::{Principal, CandidType, };
 
 use crate::database::db::Database;
 
@@ -21,8 +21,8 @@ impl Company {
 }
 
 pub struct CompanyCollection {
-    owner_mapping: HashMap<Principal, u32>,
-    companies: BTreeMap<u32, Company>,
+    pub owner_mapping: HashMap<Principal, u32>,
+    pub companies: BTreeMap<u32, Company>,
     pub counter: u32,
 }
 

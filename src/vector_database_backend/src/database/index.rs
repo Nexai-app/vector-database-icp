@@ -9,7 +9,7 @@ pub fn generate_index(points: Vec<Vector>, values: Vec<String>) -> HnswMap<Vecto
 
 #[derive(Copy, Clone, Debug)] 
 pub struct Vector {
-    data: SVector<f64, EMBEDDING_LENGTH>
+    pub data: SVector<f64, EMBEDDING_LENGTH>
 }
 
 impl instant_distance::Point for Vector { 

@@ -3,15 +3,17 @@ pub mod config;
 pub mod database;
 pub mod management;
 pub mod company;
+pub mod migration;
 
 use std::cell::RefCell;
 use company::comp::{CompanyCollection, Company};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, api::call};
+use ic_cdk::{update, query, init, post_upgrade, pre_upgrade};
 use candid::{candid_method, export_service, Principal};
 use instant_distance::Search;
 use management::AccessControl;
+use migration::migration::CompanyCollectionMigration;
 
 thread_local! {
     static ACL: RefCell<AccessControl> = RefCell::new(AccessControl::new());
@@ -28,6 +30,36 @@ async fn init() {
         acl.set_owner(caller);
         acl.add_manager(caller);
     })
+}
+
+#[pre_upgrade]
+fn pre_upgrade() {
+    let acl = ACL.with(|a| {
+        a.replace(AccessControl::default())
+    });
+
+    let comp = COMP.with(|c| {
+        c.replace(CompanyCollection::new())
+    });
+
+    let comp_migrate = CompanyCollectionMigration::from(comp);
+
+    ic_cdk::storage::stable_save((acl, comp_migrate,)).expect("should save acl and comp to stable storage");
+}
+
+#[post_upgrade]
+fn post_upgrade() {
+    let (acl, comp_migrate): (AccessControl, CompanyCollectionMigration) = ic_cdk::storage::stable_restore().expect("restore company collection and acl should work");
+
+    let comp: CompanyCollection = comp_migrate.into();
+
+    ACL.with(|a| {
+        a.replace(acl);
+    });
+
+    COMP.with(|c| {
+        c.replace(comp);
+    });
 }
 
 // APIs for vector database business
@@ -173,17 +205,17 @@ fn remove_accesser(accesser: Principal) -> bool {
 }
 
 
-/// buggy codes
-// #[candid_method(query)]
-// // #[update(guard = "only_manager")]
+// buggy codes
 // #[update(guard = "only_manager")]
-// fn states() -> Option<AccessControl> {
-//     ACL.with(|acl| {
-//         let acl = acl.borrow();
+#[candid_method(query)]
+#[query]
+fn states() -> Option<AccessControl> {
+    ACL.with(|acl| {
+        let acl = acl.borrow();
 
-//         Some((*acl).clone())
-//     })
-// }
+        Some((*acl).clone())
+    })
+}
 
 /// set flag `access_list_enabled`
 #[candid_method(update)]

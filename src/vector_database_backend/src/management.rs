@@ -1,13 +1,24 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, thread::AccessError};
 
-use candid::{types::principal::Principal, CandidType};
+use candid::{types::principal::Principal, CandidType, Deserialize};
 
-#[derive(Clone, CandidType)]
+#[derive(Clone, CandidType, Deserialize)]
 pub struct AccessControl {
     owner: Principal, 
     pub access_list_enabled: bool,
     pub managers: HashSet<Principal>,
     pub accessers: HashSet<Principal>,
+}
+
+impl Default for AccessControl {
+    fn default() -> Self {
+        AccessControl {
+            owner: Principal::anonymous(),
+            access_list_enabled: true,
+            managers: HashSet::default(),
+            accessers: HashSet::default()
+        } 
+    }
 }
 
 impl AccessControl {

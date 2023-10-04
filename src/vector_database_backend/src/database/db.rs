@@ -1,11 +1,12 @@
 use super::index::{Vector, generate_index};
+use candid::CandidType;
 use instant_distance::{HnswMap, Search};
 
 pub struct Database {
     inner: HnswMap<Vector, String>,
 
-    keys: Vec<Vector>,
-    values: Vec<String>,
+    pub keys: Vec<Vector>,
+    pub values: Vec<String>,
 }
 
 impl Database {
