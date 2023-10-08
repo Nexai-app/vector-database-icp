@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use company::comp::{CompanyCollection, Company};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, post_upgrade, pre_upgrade};
+use ic_cdk::{update, query, init, post_upgrade, pre_upgrade, storage,};
 use candid::{candid_method, export_service, Principal};
 use instant_distance::Search;
 use management::AccessControl;
@@ -44,23 +44,23 @@ fn pre_upgrade() {
 
     let comp_migrate = CompanyCollectionMigration::from(comp);
 
-    ic_cdk::storage::stable_save((acl, comp_migrate,)).expect("should save acl and comp to stable storage");
+    storage::stable_save((acl, comp_migrate,)).expect("should save acl and comp to stable storage");
 }
 
-#[post_upgrade]
-fn post_upgrade() {
-    let (acl, comp_migrate): (AccessControl, CompanyCollectionMigration) = ic_cdk::storage::stable_restore().expect("restore company collection and acl should work");
+// #[post_upgrade]
+// fn post_upgrade() {
+//     let (acl, comp_migrate): (AccessControl, CompanyCollectionMigration) = storage::stable_restore().expect("restore company collection and acl should work");
 
-    let comp: CompanyCollection = comp_migrate.into();
+//     let comp: CompanyCollection = comp_migrate.into();
 
-    ACL.with(|a| {
-        a.replace(acl);
-    });
+//     ACL.with(|a| {
+//         a.replace(acl);
+//     });
 
-    COMP.with(|c| {
-        c.replace(comp);
-    });
-}
+//     COMP.with(|c| {
+//         c.replace(comp);
+//     });
+// }
 
 // APIs for vector database business
 
