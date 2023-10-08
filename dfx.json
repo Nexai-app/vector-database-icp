@@ -7,6 +7,7 @@
       "candid": "src/vector_database_backend/vector_database_backend.did",
       "pullable": {
         "wasm_url": "https://github.com/Nexai-app/vector-database-icp/releases/download/0.1.0/vector_database_backend.wasm",
+        "wasm_hash": "6bab10fc18a6e69ba557158bf64964e5d432aa31c8485aeeb54e504247956df1",
         "dependencies": [],
         "init_guide": "null"
       }
