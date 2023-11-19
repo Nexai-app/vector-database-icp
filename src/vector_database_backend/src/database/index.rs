@@ -3,7 +3,7 @@ use instant_distance::{Builder, HnswMap, Point};
 use na::SVector;
 use nalgebra::ComplexField;
 
-pub fn generate_index(points: Vec<Vector>, values: Vec<String>) -> HnswMap<Vector, String> {
+pub fn generate_index(points: Vec<Vector>, values: Vec<u64>) -> HnswMap<Vector, u64> {
     Builder::default().build(points, values)
 }
 

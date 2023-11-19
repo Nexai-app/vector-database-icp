@@ -29,8 +29,8 @@ impl From<Database> for DatabaseMigration {
             keys.push(tmp);
         } 
 
-        for v in value.values {
-            values.push(v);
+        for v in value.storage.values() {
+            values.push(v.clone());
         }
 
         Self { keys, values }

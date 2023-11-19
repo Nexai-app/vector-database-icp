@@ -100,11 +100,25 @@ fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, S
     })
 }
 
+#[candid_method(update)]
+#[update]
+fn store_one_document(id: u32, doc: String) -> Result<u64, String> {
+    COMP.with(|comp| {
+        let mut comps = comp.borrow_mut();
+        match comps.get_mut(&id) {
+            Some(c) => {
+                c.db.store_one_document(doc)
+            },
+            None => Err(String::from("No such comp"))
+        }
+    })
+}
+
 /// append keys(embeddings) and values(question-answer-pairs) into database
 /// it either returns Ok() or throw an error(Unprivileged)
 #[candid_method(update)]
 #[update]
-fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Result<(), String> {
+fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<u64>) -> Result<(), String> {
     // let caller = ic_cdk::caller();
     // if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
     //     return Err(String::from("caller not owner of company or not manager"))
@@ -121,7 +135,7 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
             Some(c) => {
                 let db = &mut c.db;
                 let mut points: Vec<Vector> = vec![];
-                let mut _values: Vec<String> = vec![];
+                let mut _values: Vec<u64> = vec![];
 
                 for i in 0..keys.len() {
                     let key = &keys[i];
