@@ -1,6 +1,14 @@
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : vec record { float64; text }; Err : text };
 type Result_2 = variant { Ok : nat32; Err : text };
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : vec nat8;
+  headers : vec HttpHeader;
+};
+type Result_3 = variant { Ok : text; Err : text };
+type TransformArgs = record { context : vec nat8; response : HttpResponse };
 service : () -> {
   add_accesser : (principal) -> (bool);
   add_manager : (principal) -> (bool);
@@ -11,4 +19,6 @@ service : () -> {
   remove_accesser : (principal) -> (bool);
   remove_manager : (principal) -> (bool);
   set_acl_enabled : (bool) -> (Result);
+  hello_openai : () -> (Result);
+  transform : (TransformArgs) -> (HttpResponse) query;
 }
