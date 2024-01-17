@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use super::index::{Vector, generate_index};
-use candid::{CandidType, bindings::candid::value};
 use instant_distance::{HnswMap, Search};
 
 pub struct Database {
