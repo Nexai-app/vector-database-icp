@@ -1,5 +1,5 @@
 use crate::config::EMBEDDING_LENGTH;
-use instant_distance::{Builder, HnswMap, Point};
+use instant_distance::{Builder, HnswMap};
 use na::SVector;
 use nalgebra::ComplexField;
 

@@ -9,8 +9,8 @@ use std::cell::RefCell;
 use company::comp::{CompanyCollection, Company};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, post_upgrade, pre_upgrade, storage,};
-use candid::{candid_method, export_service, Principal};
+use ic_cdk::{update, query, init, pre_upgrade, storage,};
+use candid::{candid_method,Principal};
 use instant_distance::Search;
 use management::AccessControl;
 use migration::migration::CompanyCollectionMigration;
@@ -253,87 +253,6 @@ fn set_acl_enabled(enable: bool) -> Result<(), String> {
     Ok(())
 }
 
-
-// Candid
-#[query(name = "__get_candid_interface_tmp_hack")]
-fn export_candid() -> String {
-    export_service!();
-    __export_service()
-}
-
-
-// Access Control helper functions
-fn only_owner() -> Result<(), String> {
-    let caller = ic_cdk::caller();
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-
-        if acl.is_owner(caller) {
-            Ok(())
-        } else {
-            Err(String::from("Not owner"))
-        }
-    })
-}
-
-fn only_manager() -> Result<(), String> {
-    let caller = ic_cdk::caller();
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-
-        if acl.allow_manage(&caller) {
-            Ok(())
-        } else {
-            Err(String::from("Not manager"))
-        }
-    })
-}
-
-fn only_allowed_accesser() -> Result<(), String> {
-    let caller = ic_cdk::caller();
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-
-        if !acl.access_list_enabled || acl.allow_access(&caller) {
-            Ok(())
-        } else {
-            Err(String::from("Contact admin to gain access"))
-        }
-    })
-}
-
-fn is_manager(p: &Principal) -> bool {
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-        acl.allow_manage(p)
-    })
-}
-
-fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
-    let mut allow = true;
-
-    ACL.with(|acl| {
-        let acl = acl.borrow();
-        allow = allow && acl.allow_access(caller)
-    });
-
-    COMP.with(|comp| {
-        let comp = comp.borrow();
-        match comp.get(comp_id) {
-            Some(c) => {
-                allow = allow && (c.owner == *caller);
-            },
-            None => {
-                allow = false;
-            }
-        }
-    });
-
-    return allow;
-}
-
-
-
 //////////////////////OPENAI//////////////////////////
 #[update]
 async fn hello_openai() -> Result<String, String> {
@@ -450,3 +369,88 @@ fn transform(raw: TransformArgs) -> HttpResponse {
     res
 }
 ///////////////////////////////////////////////////
+
+// Candid
+// #[query(name = "__get_candid_interface_tmp_hack")]
+// fn export_candid() -> String {
+//     export_service!();
+//     __export_service()
+// }
+// Enable Candid export
+ic_cdk::export_candid!();
+
+// Access Control helper functions
+fn only_owner() -> Result<(), String> {
+    let caller = ic_cdk::caller();
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+
+        if acl.is_owner(caller) {
+            Ok(())
+        } else {
+            Err(String::from("Not owner"))
+        }
+    })
+}
+
+fn only_manager() -> Result<(), String> {
+    let caller = ic_cdk::caller();
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+
+        if acl.allow_manage(&caller) {
+            Ok(())
+        } else {
+            Err(String::from("Not manager"))
+        }
+    })
+}
+
+fn only_allowed_accesser() -> Result<(), String> {
+    let caller = ic_cdk::caller();
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+
+        if !acl.access_list_enabled || acl.allow_access(&caller) {
+            Ok(())
+        } else {
+            Err(String::from("Contact admin to gain access"))
+        }
+    })
+}
+
+fn is_manager(p: &Principal) -> bool {
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+        acl.allow_manage(p)
+    })
+}
+
+fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
+    let mut allow = true;
+
+    ACL.with(|acl| {
+        let acl = acl.borrow();
+        allow = allow && acl.allow_access(caller)
+    });
+
+    COMP.with(|comp| {
+        let comp = comp.borrow();
+        match comp.get(comp_id) {
+            Some(c) => {
+                allow = allow && (c.owner == *caller);
+            },
+            None => {
+                allow = false;
+            }
+        }
+    });
+
+    return allow;
+}
+
+
+
+
+
+

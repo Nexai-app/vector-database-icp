@@ -1,6 +1,6 @@
-use std::{collections::{BTreeMap, HashMap}, hash::Hash};
+use std::{collections::{BTreeMap, HashMap}};
 
-use candid::{Principal, CandidType, };
+use candid::{Principal };
 
 use crate::database::db::Database;
 

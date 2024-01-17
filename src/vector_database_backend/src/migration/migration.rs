@@ -1,11 +1,10 @@
-use std::{collections::{HashMap, BTreeMap}, hash::Hash};
+use std::{collections::{HashMap, BTreeMap}};
 
 use candid::{Principal, CandidType, Deserialize};
-use nalgebra::{SVector, DVector};
 
-use crate::database::{db::Database, index::{Vector, generate_index}};
+use crate::database::{db::Database, index::{Vector}};
 use crate::company::comp::{CompanyCollection, Company};
-use crate::config::EMBEDDING_LENGTH;
+// use crate::config::EMBEDDING_LENGTH;
 
 
 #[derive(CandidType, Clone, Deserialize)]
@@ -43,7 +42,7 @@ impl Into<Database> for DatabaseMigration {
         let mut values = self.values.clone();
 
         for k in self.keys {
-            let tmp = Vector::from(k);
+            let _tmp = Vector::from(k);
         }
 
         Database::new(keys, values)
