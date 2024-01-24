@@ -110,25 +110,11 @@ fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, S
     })
 }
 
-#[candid_method(update)]
-#[update]
-fn store_one_document(id: u32, doc: String) -> Result<u64, String> {
-    COMP.with(|comp| {
-        let mut comps = comp.borrow_mut();
-        match comps.get_mut(&id) {
-            Some(c) => {
-                c.db.store_one_document(doc)
-            },
-            None => Err(String::from("No such comp"))
-        }
-    })
-}
-
 /// append keys(embeddings) and values(question-answer-pairs) into database
 /// it either returns Ok() or throw an error(Unprivileged)
 #[candid_method(update)]
 #[update]
-fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<u64>) -> Result<(), String> {
+fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Result<(), String> {
     // let caller = ic_cdk::caller();
     // if !caller_same_with_comp_owner(&caller, &id) && !is_manager(&caller) {
     //     return Err(String::from("caller not owner of company or not manager"))
@@ -145,7 +131,7 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<u64>) -> Result<
             Some(c) => {
                 let db = &mut c.db;
                 let mut points: Vec<Vector> = vec![];
-                let mut _values: Vec<u64> = vec![];
+                let mut _values: Vec<String> = vec![];
 
                 for i in 0..keys.len() {
                     let key = &keys[i];
@@ -261,7 +247,7 @@ async fn hello_openai() -> Result<String, String> {
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
-    let api_key = "sk-";
+    let api_key = "sk-xxx";
 
     let request_headers = vec![
         HttpHeader {
@@ -278,7 +264,7 @@ async fn hello_openai() -> Result<String, String> {
         GPT3_5_TURBO.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("Hello OpenAI!")),
+            content: chat_completion::Content::Text(String::from("Hello OpenAI, what is 2 + 2!")),
             name: None,
         }],
     );
@@ -297,7 +283,7 @@ async fn hello_openai() -> Result<String, String> {
         // transform: None, //optional for request
     };
 
-    let result: Result<String, String> = match http_request(request, 1_603_148_400).await {
+    let result: Result<String, String> = match http_request(request, 30_603_148_400).await {
         Ok((response,)) => {
             let str_body = String::from_utf8(response.body)
                 .expect("Transformed response is not UTF-8 encoded.");

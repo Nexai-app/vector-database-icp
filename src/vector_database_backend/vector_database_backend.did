@@ -14,12 +14,11 @@ type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : vec record { float64; text }; Err : text };
 type Result_2 = variant { Ok : text; Err : text };
 type Result_3 = variant { Ok : nat32; Err : text };
-type Result_4 = variant { Ok : nat64; Err : text };
 type TransformArgs = record { context : vec nat8; response : HttpResponse };
 service : () -> {
   add_accesser : (principal) -> (bool);
   add_manager : (principal) -> (bool);
-  append_keys_values : (nat32, vec vec float64, vec nat64) -> (Result);
+  append_keys_values : (nat32, vec vec float64, vec text) -> (Result);
   build_index : (nat32) -> (Result);
   get_similar : (nat32, vec float64, int32) -> (Result_1) query;
   hello_openai : () -> (Result_2);
@@ -28,6 +27,5 @@ service : () -> {
   remove_manager : (principal) -> (bool);
   set_acl_enabled : (bool) -> (Result);
   states : () -> (opt AccessControl) query;
-  store_one_document : (nat32, text) -> (Result_4);
   transform : (TransformArgs) -> (HttpResponse) query;
 }
