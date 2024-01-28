@@ -274,7 +274,7 @@ async fn hello_openai() -> Result<String, String> {
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
-    let api_key = "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";
+    let api_key = "sk-xxx";
 
     let request_headers = vec![
         HttpHeader {
