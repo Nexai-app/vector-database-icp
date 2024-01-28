@@ -46,7 +46,7 @@ struct Conversation {
     messages: Vec<Message>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, CandidType)]
 pub struct ConnectionEntry {
     id: usize,
     account1: String, // Assuming Principal is a string in Motoko
@@ -54,7 +54,7 @@ pub struct ConnectionEntry {
     created_at: i64,
 }
 
-
+#[derive(CandidType)]
 struct CompanyEntry {
     name : String,
     email : String,
@@ -62,6 +62,8 @@ struct CompanyEntry {
     vdbId : u32,
     createdAt : i8,
 }
+
+#[derive(CandidType, Clone)]
 pub struct MessageEntry {
     id: usize,
     connection_id: usize,
@@ -244,8 +246,9 @@ impl Msg {
 
     //     Some(())
     // }
+    
 
-    pub fn get_messages(&self, account: String, caller : String) -> Vec<&MessageEntry> {
+    pub fn get_messages(&self, account: String, caller : String) -> Vec<MessageEntry> {
         let mut msgs = Vec::new();
         for (_, j) in self.connection_hash_map.iter() {
             if (j.account1 == caller && j.account2 == account) || (j.account1 == account && j.account2 == caller) {
@@ -259,6 +262,7 @@ impl Msg {
         msgs
     }
 
+
     fn check_connection(&self, account: String, caller : String) -> bool {
         for (_, j) in self.connection_hash_map.iter() {
             if (j.account1 == caller && j.account2 == account) || (j.account1 == account && j.account2 == caller) {
@@ -267,6 +271,7 @@ impl Msg {
         }
         false
     }
+
 
     pub fn get_all_connections(&self, caller : String) -> Vec<ConnectionEntry> {
         let mut buff = Vec::new();
@@ -279,6 +284,7 @@ impl Msg {
     }
 
 }
+
 
 // impl Connection {
 
