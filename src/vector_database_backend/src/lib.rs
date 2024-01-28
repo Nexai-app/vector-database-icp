@@ -2,20 +2,15 @@ extern  crate nalgebra as na;
 pub mod config;
 pub mod database;
 pub mod management;
-pub mod company; 
+pub mod company;
 pub mod migration;
-pub mod message;
 
-use std::collections::{BTreeMap, BTreeSet};
 use std::cell::RefCell;
-
 use company::comp::{CompanyCollection, Company};
-use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, post_upgrade, pre_upgrade, storage,};
-use candid::{candid_method, export_service, Principal, CandidType, Encode, Decode, Deserialize};
-use serde::Serialize;
+use ic_cdk::{update, query, init, pre_upgrade, storage,};
+use candid::{candid_method,Principal};
 use instant_distance::Search;
 use management::AccessControl;
 use migration::migration::CompanyCollectionMigration;
@@ -32,55 +27,9 @@ mod openai;
 
 thread_local! {
     static ACL: RefCell<AccessControl> = RefCell::new(AccessControl::new());
-    static MSG : RefCell<Msg> = RefCell::new(Msg::new());
+
     static COMP: RefCell<CompanyCollection> = RefCell::new(CompanyCollection::new());
 }
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct Message {
-    pub id : u128,
-    pub connection_id : u128,
-    pub sender : String, // Principal type
-    pub body : String,
-    created_at : u8,
-}
-
-
-
-// impl CandidType for MessageEntry {
-//     fn id() -> candid::Type {
-//         candid::types::Type::Record(vec![
-//             ("id", u128::id()),
-//             ("connection_id", u128::id()),
-//             ("sender", String::id()),
-//             ("body", String::id()),
-//             ("created_at", u8::id()),
-//         ])
-//     }
-
-//     fn _ty() -> candid::Type {
-//         Self::id()
-//     }
-// }
-
-// impl CandidType for Vec<&MessageEntry> {
-//     fn id() -> candid::Type {
-//         candid::types::Type::Vec(Box::new(MessageEntry::id()))
-//     }
-
-//     fn _ty() -> candid::Type {
-//         Self::id()
-//     }
-// }
-
-
-// #[derive(CandidType, Clone, Debug, Default, Deserialize, Serialize)]
-// pub struct Connection {
-//     pub id : u128,
-//     pub account1 : String, // type Principal
-//     pub account2 : String, // type Principal
-//     pub created_at : u8,
-// }
 
 #[candid_method(init)]
 #[init]
@@ -90,15 +39,8 @@ async fn init() {
         let mut acl = acl.borrow_mut();
         acl.set_owner(caller);
         acl.add_manager(caller);
-    });
-
-    // Initialize msg
-    MSG.with(|msg| {
-        let mut msg = msg.borrow_mut();
-    });
+    })
 }
-
-
 
 #[pre_upgrade]
 fn pre_upgrade() {
@@ -130,20 +72,6 @@ fn pre_upgrade() {
 //     });
 // }
 
-/// APIs for the Messages and Connections management
-
-// #[candid_method(query)]
-// #[query]
-// pub fn get_all_connection() -> Vec<ConnectionMap> {
-//     Connection_Map.with(|connection_map| {
-//         let mut all_connections = Vec::new();
-//         connection_map.borrow().iter().for_each(|connection| {
-//             all_connections.push((*connection.1).clone().try_into().unwrap())
-//         });
-//         return all_connections;
-//     })
-// }
-
 // APIs for vector database business
 
 /// for company user to register
@@ -158,41 +86,12 @@ fn register(description: String) -> Result<u32, String> {
     })
 }
 
-#[candid_method(update)]
-#[update]
-fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
-    let caller : Principal = ic_cdk::caller();
-    MSG.with(|msg| {
-        let mut msg = msg.borrow_mut();
-        let main_caller = caller.to_text();
-        // Ok(msg.send_message(account, main_caller, body, time))
-        msg.send_message(account.clone(), main_caller.clone(), body.clone(), time)
-            .map(|_| Some(())) // Map the result to Option<()>
-            .ok_or_else(|| "Failed to send message".to_string()) // Convert the error to String
-    })
-}
-
-#[candid_method(query)]
-#[query]
-fn get_messages(account : String) -> Vec<MessageEntry> {
-    let caller = ic_cdk::caller();
-    MSG.with(|msg| {
-        let msg = msg.borrow();
-        return msg.get_messages(account, caller.to_text());
-    })
-}
-
-#[candid_method(query)]
-#[query]
-async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
-    MSG.with(|msg| msg.borrow().get_all_connections(caller))
-}
-
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
 /// or throws an error(String) 
 #[candid_method(query)]
 #[query]
-fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, String> {
+fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String, String> {
+    let mut result = String::from("");
     if q.len() != EMBEDDING_LENGTH {
         return Err(String::from("query malformed"))
     }
@@ -204,7 +103,33 @@ fn get_similar(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, S
             Some(c) => {
                 let mut search = Search::default();
                 let key = Vector::from(q);
-                Ok(c.db.query(&key, &mut search, limit))
+                // Ok(c.db.query(&key, &mut search, limit))
+                let res = c.db.query(&key, &mut search, limit);
+                if let Some(first_element) = res.get(0) {
+                    let correctness = first_element.0;
+                    let context = String::from(&finfirst_element.1);
+                    if correctness < 0.6 {
+                      result = format!("hh");
+                        // Ok(result);
+                        // Ok(String::from("bla bla bal"));
+                    }
+                    else {
+
+                        let template =  String::from("find a solution to this question ");
+                        println!("the Question is {}", raw_q);
+                        println!("the Answer is {}", context);
+                        println!("the Template is {}", template);
+                        result = format!("hh");
+                        
+                        
+                    }
+                    Ok::<std::string::String, String>(result);
+
+                }else {
+                    Ok::<std::string::String, String>(result);
+                }
+                
+                Ok(String::from("No value for your question"))
             },
             None => Err(String::from("No such comp"))
         }
@@ -227,7 +152,7 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
     }
 
 
-    COMP.with(|comp| {
+    COMP.with(|comp: &RefCell<CompanyCollection>| {
         let mut comps = comp.borrow_mut();   
         match comps.get_mut(&id) {
             Some(c) => {
@@ -349,7 +274,7 @@ async fn hello_openai() -> Result<String, String> {
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
-    let api_key = "sk-xxx";
+    let api_key = "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";
 
     let request_headers = vec![
         HttpHeader {
@@ -537,19 +462,8 @@ fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
     return allow;
 }
 
-////////////////
-//  Message  //
-// ///////////
-
-// rewrite the motoko in rust
 
 
-// ////////
-// FAQs //
-// //////
-
-// rewrite card qa in rust
 
 
-// Stabilize both in the pre-upgrade
 
