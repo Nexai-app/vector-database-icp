@@ -2,15 +2,20 @@ extern  crate nalgebra as na;
 pub mod config;
 pub mod database;
 pub mod management;
-pub mod company;
+pub mod company; 
 pub mod migration;
+pub mod message;
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::cell::RefCell;
+
 use company::comp::{CompanyCollection, Company};
+use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, pre_upgrade, storage,};
-use candid::{candid_method,Principal};
+use ic_cdk::{update, query, init, post_upgrade, pre_upgrade, storage,};
+use candid::{candid_method, export_service, Principal, CandidType, Encode, Decode, Deserialize};
+use serde::Serialize;
 use instant_distance::Search;
 use management::AccessControl;
 use migration::migration::CompanyCollectionMigration;
@@ -27,9 +32,55 @@ mod openai;
 
 thread_local! {
     static ACL: RefCell<AccessControl> = RefCell::new(AccessControl::new());
-
+    static MSG : RefCell<Msg> = RefCell::new(Msg::new());
     static COMP: RefCell<CompanyCollection> = RefCell::new(CompanyCollection::new());
 }
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+pub struct Message {
+    pub id : u128,
+    pub connection_id : u128,
+    pub sender : String, // Principal type
+    pub body : String,
+    created_at : u8,
+}
+
+
+
+// impl CandidType for MessageEntry {
+//     fn id() -> candid::Type {
+//         candid::types::Type::Record(vec![
+//             ("id", u128::id()),
+//             ("connection_id", u128::id()),
+//             ("sender", String::id()),
+//             ("body", String::id()),
+//             ("created_at", u8::id()),
+//         ])
+//     }
+
+//     fn _ty() -> candid::Type {
+//         Self::id()
+//     }
+// }
+
+// impl CandidType for Vec<&MessageEntry> {
+//     fn id() -> candid::Type {
+//         candid::types::Type::Vec(Box::new(MessageEntry::id()))
+//     }
+
+//     fn _ty() -> candid::Type {
+//         Self::id()
+//     }
+// }
+
+
+// #[derive(CandidType, Clone, Debug, Default, Deserialize, Serialize)]
+// pub struct Connection {
+//     pub id : u128,
+//     pub account1 : String, // type Principal
+//     pub account2 : String, // type Principal
+//     pub created_at : u8,
+// }
 
 #[candid_method(init)]
 #[init]
@@ -39,8 +90,15 @@ async fn init() {
         let mut acl = acl.borrow_mut();
         acl.set_owner(caller);
         acl.add_manager(caller);
-    })
+    });
+
+    // Initialize msg
+    MSG.with(|msg| {
+        let mut msg = msg.borrow_mut();
+    });
 }
+
+
 
 #[pre_upgrade]
 fn pre_upgrade() {
@@ -72,6 +130,20 @@ fn pre_upgrade() {
 //     });
 // }
 
+/// APIs for the Messages and Connections management
+
+// #[candid_method(query)]
+// #[query]
+// pub fn get_all_connection() -> Vec<ConnectionMap> {
+//     Connection_Map.with(|connection_map| {
+//         let mut all_connections = Vec::new();
+//         connection_map.borrow().iter().for_each(|connection| {
+//             all_connections.push((*connection.1).clone().try_into().unwrap())
+//         });
+//         return all_connections;
+//     })
+// }
+
 // APIs for vector database business
 
 /// for company user to register
@@ -84,6 +156,36 @@ fn register(description: String) -> Result<u32, String> {
         let c = Company::new(owner, description);
         Ok(comps.register(c))
     })
+}
+
+#[candid_method(update)]
+#[update]
+fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
+    let caller : Principal = ic_cdk::caller();
+    MSG.with(|msg| {
+        let msgs = msg.borrow();
+
+        let mut msg = msg.borrow_mut();
+        let main_caller = caller.to_text();
+        Ok(msg.send_message(account, main_caller, body, time))
+
+    })
+}
+
+#[candid_method(query)]
+// #[query]
+fn get_messages(account : String) -> Vec<&'static MessageEntry> {
+    let caller = ic_cdk::caller();
+    MSG.with(|msg| {
+        let msg = msg.borrow();
+        msg.get_messages(account, caller.to_text())
+    })
+}
+
+#[candid_method(query)]
+// #[query]
+async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
+    MSG.with(|msg| msg.borrow().get_all_connections(caller))
 }
 
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
@@ -435,8 +537,19 @@ fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
     return allow;
 }
 
+////////////////
+//  Message  //
+// ///////////
+
+// rewrite the motoko in rust
 
 
+// ////////
+// FAQs //
+// //////
+
+// rewrite card qa in rust
 
 
+// Stabilize both in the pre-upgrade
 
