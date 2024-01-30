@@ -4,9 +4,11 @@ pub mod database;
 pub mod management;
 pub mod company;
 pub mod migration;
+pub mod message;
 
 use std::cell::RefCell;
 use company::comp::{CompanyCollection, Company};
+use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
 use ic_cdk::{update, query, init, pre_upgrade, storage,};
@@ -27,7 +29,7 @@ mod openai;
 
 thread_local! {
     static ACL: RefCell<AccessControl> = RefCell::new(AccessControl::new());
-
+    static MSG : RefCell<Msg> = RefCell::new(Msg::new());
     static COMP: RefCell<CompanyCollection> = RefCell::new(CompanyCollection::new());
 }
 
