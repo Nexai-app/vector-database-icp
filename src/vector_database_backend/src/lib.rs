@@ -86,6 +86,36 @@ fn register(description: String) -> Result<u32, String> {
     })
 }
 
+#[candid_method(update)]
+#[update]
+fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
+    let caller : Principal = ic_cdk::caller();
+    MSG.with(|msg| {
+        let mut msg = msg.borrow_mut();
+        let main_caller = caller.to_text();
+        // Ok(msg.send_message(account, main_caller, body, time))
+        msg.send_message(account.clone(), main_caller.clone(), body.clone(), time)
+            .map(|_| Some(())) 
+            .ok_or_else(|| "Something went wrong, Failed to send message".to_string()) 
+    })
+}
+
+#[candid_method(query)]
+#[query]
+fn get_messages(account : String) -> Vec<MessageEntry> {
+    let caller = ic_cdk::caller();
+    MSG.with(|msg| {
+        let msg = msg.borrow();
+        return msg.get_messages(account, caller.to_text());
+    })
+}
+
+#[candid_method(query)]
+#[query]
+async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
+    MSG.with(|msg| msg.borrow().get_all_connections(caller))
+}
+
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
 /// or throws an error(String) 
 #[candid_method(query)]
