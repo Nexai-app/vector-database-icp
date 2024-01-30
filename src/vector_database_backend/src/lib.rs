@@ -107,7 +107,7 @@ fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String,
                 let res = c.db.query(&key, &mut search, limit);
                 if let Some(first_element) = res.get(0) {
                     let correctness = first_element.0;
-                    let context = String::from(&finfirst_element.1);
+                    // let context = String::from(&finfirst_element.1);
                     if correctness < 0.6 {
                       result = format!("hh");
                         // Ok(result);
@@ -117,7 +117,7 @@ fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String,
 
                         let template =  String::from("find a solution to this question ");
                         println!("the Question is {}", raw_q);
-                        println!("the Answer is {}", context);
+                        // println!("the Answer is {}", context);
                         println!("the Template is {}", template);
                         result = format!("hh");
                         
