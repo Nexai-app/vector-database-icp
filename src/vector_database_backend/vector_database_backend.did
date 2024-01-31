@@ -44,4 +44,4 @@ service : () -> {
   set_acl_enabled : (bool) -> (Result);
   states : () -> (opt AccessControl) query;
   transform : (TransformArgs) -> (HttpResponse) query;
-};
+}
