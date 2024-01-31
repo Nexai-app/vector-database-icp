@@ -1,5 +1,4 @@
-use super::index::{Vector, generate_index};
-use candid::CandidType;
+use super::index::{generate_index, Vector};
 use instant_distance::{HnswMap, Search};
 
 pub struct Database {
@@ -11,9 +10,9 @@ pub struct Database {
 
 impl Database {
     pub fn new(keys: Vec<Vector>, values: Vec<String>) -> Self {
-        Database { 
-            keys: keys.clone(), 
-            values: values.clone(), 
+        Database {
+            keys: keys.clone(),
+            values: values.clone(),
             inner: generate_index(keys, values),
         }
     }
@@ -23,12 +22,10 @@ impl Database {
         let mut iter = self.inner.search(key, search);
         for _ in 0..limit {
             match iter.next() {
-                Some(v) => {
-                    res.push((v.point.cos_sim(key), (*v.value).clone()))
-                },
-                None => break
+                Some(v) => res.push((v.point.cos_sim(key), (*v.value).clone())),
+                None => break,
             }
-        };
+        }
 
         res
     }

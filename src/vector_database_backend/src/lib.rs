@@ -1,21 +1,22 @@
-extern  crate nalgebra as na;
+extern crate nalgebra as na;
+pub mod company;
 pub mod config;
 pub mod database;
 pub mod management;
-pub mod company;
-pub mod migration;
 pub mod message;
+pub mod migration;
 
-use std::cell::RefCell;
-use company::comp::{CompanyCollection, Company};
-use message::msg::{Msg, MessageEntry, ConnectionEntry};
+use candid::Principal;
+use company::comp::{Company, CompanyCollection};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
-use ic_cdk::{update, query, init, pre_upgrade, storage,};
-use candid::{candid_method,Principal};
+use ic_cdk::storage;
+use ic_cdk_macros::{init, pre_upgrade, query, update};
 use instant_distance::Search;
 use management::AccessControl;
+use message::msg::{ConnectionEntry, MessageEntry, Msg};
 use migration::migration::CompanyCollectionMigration;
+use std::cell::RefCell;
 
 ////////////////////OPENAI/////////////////////////
 use ic_cdk::api::management_canister::http_request::{
@@ -33,7 +34,6 @@ thread_local! {
     static COMP: RefCell<CompanyCollection> = RefCell::new(CompanyCollection::new());
 }
 
-#[candid_method(init)]
 #[init]
 async fn init() {
     let caller = ic_cdk::caller();
@@ -46,17 +46,13 @@ async fn init() {
 
 #[pre_upgrade]
 fn pre_upgrade() {
-    let acl = ACL.with(|a| {
-        a.replace(AccessControl::default())
-    });
+    let acl = ACL.with(|a| a.replace(AccessControl::default()));
 
-    let comp = COMP.with(|c| {
-        c.replace(CompanyCollection::new())
-    });
+    let comp = COMP.with(|c| c.replace(CompanyCollection::new()));
 
     let comp_migrate = CompanyCollectionMigration::from(comp);
 
-    storage::stable_save((acl, comp_migrate,)).expect("should save acl and comp to stable storage");
+    storage::stable_save((acl, comp_migrate)).expect("should save acl and comp to stable storage");
 }
 
 // #[post_upgrade]
@@ -77,7 +73,7 @@ fn pre_upgrade() {
 // APIs for vector database business
 
 /// for company user to register
-#[candid_method(update)]
+
 #[update]
 fn register(description: String) -> Result<u32, String> {
     COMP.with(|comp| {
@@ -87,24 +83,21 @@ fn register(description: String) -> Result<u32, String> {
         Ok(comps.register(c))
     })
 }
-
-#[candid_method(update)]
 #[update]
-fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
-    let caller : Principal = ic_cdk::caller();
+fn send_message(account: String, body: String, time: i64) -> Result<Option<()>, String> {
+    let caller: Principal = ic_cdk::caller();
     MSG.with(|msg| {
         let mut msg = msg.borrow_mut();
         let main_caller = caller.to_text();
         // Ok(msg.send_message(account, main_caller, body, time))
         msg.send_message(account.clone(), main_caller.clone(), body.clone(), time)
-            .map(|_| Some(())) 
-            .ok_or_else(|| "Something went wrong, Failed to send message".to_string()) 
+            .map(|_| Some(()))
+            .ok_or_else(|| "Something went wrong, Failed to send message".to_string())
     })
 }
 
-#[candid_method(query)]
 #[query]
-fn get_messages(account : String) -> Vec<MessageEntry> {
+fn get_messages(account: String) -> Vec<MessageEntry> {
     let caller = ic_cdk::caller();
     MSG.with(|msg| {
         let msg = msg.borrow();
@@ -112,20 +105,18 @@ fn get_messages(account : String) -> Vec<MessageEntry> {
     })
 }
 
-#[candid_method(query)]
 #[query]
 async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
     MSG.with(|msg| msg.borrow().get_all_connections(caller))
 }
 
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
-/// or throws an error(String) 
-#[candid_method(query)]
+/// or throws an error(String)
 #[query]
-fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String, String> {
+fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<String, String> {
     let mut result = String::from("");
     if q.len() != EMBEDDING_LENGTH {
-        return Err(String::from("query malformed"))
+        return Err(String::from("query malformed"));
     }
 
     COMP.with(|comp| {
@@ -141,37 +132,30 @@ fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String,
                     let correctness = first_element.0;
                     // let context = String::from(&finfirst_element.1);
                     if correctness < 0.6 {
-                      result = format!("hh");
+                        result = format!("hh");
                         // Ok(result);
                         // Ok(String::from("bla bla bal"));
-                    }
-                    else {
-
-                        let template =  String::from("find a solution to this question ");
+                    } else {
+                        let template = String::from("find a solution to this question ");
                         println!("the Question is {}", raw_q);
                         // println!("the Answer is {}", context);
                         println!("the Template is {}", template);
                         result = format!("hh");
-                        
-                        
                     }
                     Ok::<std::string::String, String>(result);
-
-                }else {
+                } else {
                     Ok::<std::string::String, String>(result);
                 }
-                
-                Ok(String::from("No value for your question"))
-            },
-            None => Err(String::from("No such comp"))
-        }
 
+                Ok(String::from("No value for your question"))
+            }
+            None => Err(String::from("No such comp")),
+        }
     })
 }
 
 /// append keys(embeddings) and values(question-answer-pairs) into database
 /// it either returns Ok() or throw an error(Unprivileged)
-#[candid_method(update)]
 #[update]
 fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Result<(), String> {
     // let caller = ic_cdk::caller();
@@ -183,9 +167,8 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
         return Err(String::from("keys length is not euqal to values"));
     }
 
-
     COMP.with(|comp: &RefCell<CompanyCollection>| {
-        let mut comps = comp.borrow_mut();   
+        let mut comps = comp.borrow_mut();
         match comps.get_mut(&id) {
             Some(c) => {
                 let db = &mut c.db;
@@ -194,7 +177,7 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
 
                 for i in 0..keys.len() {
                     let key = &keys[i];
-                    if key.len() !=  EMBEDDING_LENGTH {
+                    if key.len() != EMBEDDING_LENGTH {
                         continue;
                     }
                     let point = Vector::from((*key).clone());
@@ -203,15 +186,14 @@ fn append_keys_values(id: u32, keys: Vec<Vec<f64>>, values: Vec<String>) -> Resu
                 }
 
                 db.append(&mut points, &mut _values)
-            },
-            None => Err(String::from("No such comp"))
+            }
+            None => Err(String::from("No such comp")),
         }
     })
 }
 
 /// build index for uploaded keys(embeddings) and values(question-answers-pairs)
 /// this is done manually, and function `append_keys_values` doesn't do it automatically since the function call is expensive
-#[candid_method(update)]
 #[update]
 fn build_index(id: u32) -> Result<(), String> {
     // let caller = ic_cdk::caller();
@@ -226,15 +208,14 @@ fn build_index(id: u32) -> Result<(), String> {
                 let db = &mut c.db;
                 db.build_index();
                 Ok(())
-            },
-            None => Err(String::from("No such comp"))
+            }
+            None => Err(String::from("No such comp")),
         }
     })
 }
 
 // Manage functions
 /// add a manager
-#[candid_method(update)]
 #[update(guard = "only_owner")]
 fn add_manager(manager: Principal) -> bool {
     ACL.with(|acl| {
@@ -244,7 +225,6 @@ fn add_manager(manager: Principal) -> bool {
 }
 
 /// remove a manager
-#[candid_method(update)]
 #[update(guard = "only_owner")]
 fn remove_manager(manager: Principal) -> bool {
     ACL.with(|acl| {
@@ -254,7 +234,6 @@ fn remove_manager(manager: Principal) -> bool {
 }
 
 /// add a accesser to allow access, only valid when vdb setting `access_list_enabled` to be true
-#[candid_method(update)]
 #[update(guard = "only_manager")]
 fn add_accesser(accesser: Principal) -> bool {
     ACL.with(|acl| {
@@ -264,7 +243,6 @@ fn add_accesser(accesser: Principal) -> bool {
 }
 
 /// remove an accesser
-#[candid_method(update)]
 #[update(guard = "only_manager")]
 fn remove_accesser(accesser: Principal) -> bool {
     ACL.with(|acl| {
@@ -273,10 +251,9 @@ fn remove_accesser(accesser: Principal) -> bool {
     })
 }
 
-
 // buggy codes
 // #[update(guard = "only_manager")]
-#[candid_method(query)]
+
 #[query]
 fn states() -> Option<AccessControl> {
     ACL.with(|acl| {
@@ -287,7 +264,6 @@ fn states() -> Option<AccessControl> {
 }
 
 /// set flag `access_list_enabled`
-#[candid_method(update)]
 #[update(guard = "only_manager")]
 fn set_acl_enabled(enable: bool) -> Result<(), String> {
     ACL.with(|acl| {
@@ -344,14 +320,10 @@ async fn hello_openai() -> Result<String, String> {
 
     let result: Result<String, String> = match http_request(request, 30_603_148_400).await {
         Ok((response,)) => {
-            let str_body = String::from_utf8(response.body)
-                .expect("Transformed response is not UTF-8 encoded.");
+            let str_body = String::from_utf8(response.body).expect("Transformed response is not UTF-8 encoded.");
             ic_cdk::api::print(format!("{:?}", str_body));
             if (200u32..=299u32).contains(&response.status) {
-                let result: String = format!(
-                    "{}. See more info of the request sent at: {}/inspect",
-                    str_body, url
-                );
+                let result: String = format!("{}. See more info of the request sent at: {}/inspect", str_body, url);
 
                 Ok(result)
             } else {
@@ -359,8 +331,7 @@ async fn hello_openai() -> Result<String, String> {
             }
         }
         Err((r, m)) => {
-            let message =
-                format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");
+            let message = format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");
 
             Err(message)
         }
@@ -415,14 +386,7 @@ fn transform(raw: TransformArgs) -> HttpResponse {
 }
 ///////////////////////////////////////////////////
 
-// Candid
-// #[query(name = "__get_candid_interface_tmp_hack")]
-// fn export_candid() -> String {
-//     export_service!();
-//     __export_service()
-// }
-// Enable Candid export
-ic_cdk::export_candid!();
+ic_cdk_macros::export_candid!();
 
 // Access Control helper functions
 fn only_owner() -> Result<(), String> {
@@ -471,7 +435,7 @@ fn is_manager(p: &Principal) -> bool {
     })
 }
 
-fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
+fn caller_same_with_comp_owner(caller: &Principal, comp_id: &u32) -> bool {
     let mut allow = true;
 
     ACL.with(|acl| {
@@ -484,7 +448,7 @@ fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
         match comp.get(comp_id) {
             Some(c) => {
                 allow = allow && (c.owner == *caller);
-            },
+            }
             None => {
                 allow = false;
             }
@@ -493,9 +457,3 @@ fn caller_same_with_comp_owner(caller: &Principal,  comp_id: &u32) -> bool {
 
     return allow;
 }
-
-
-
-
-
-
