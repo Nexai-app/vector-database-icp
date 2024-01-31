@@ -29,6 +29,7 @@ generate-did:
 	
 generate: build
 	make generate-did
+	dfx generate $(DB)
 
 start:
 	dfx start --background --clean
