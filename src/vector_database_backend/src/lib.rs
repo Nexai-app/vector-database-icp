@@ -88,7 +88,6 @@ fn register(description: String) -> Result<u32, String> {
     })
 }
 
-#[candid_method(update)]
 #[update]
 fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
     let caller : Principal = ic_cdk::caller();
@@ -105,9 +104,6 @@ fn send_message(account : String, body : String, time : i64) -> Result<Option<()
 }
 
 
-
-
-#[candid_method(query)]
 #[query]
 fn get_messages(account: String) -> Vec<MessageEntry> {
     let caller = ic_cdk::caller();
@@ -117,7 +113,7 @@ fn get_messages(account: String) -> Vec<MessageEntry> {
     })
 }
 
-#[candid_method(update)]
+
 #[update]
 async fn set_connection_completed(connection_id : usize) -> bool {
     // let caller = ic_cdk::caller();
@@ -126,7 +122,7 @@ async fn set_connection_completed(connection_id : usize) -> bool {
     })
 }
 
-#[candid_method(query)]
+
 #[query]
 async fn is_complete(account : String) -> bool {
     let caller = ic_cdk::caller();
