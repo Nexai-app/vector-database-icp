@@ -9,6 +9,7 @@ pub mod migration;
 use std::time::{Duration, Instant, SystemTime};
 use std::thread::sleep;
 use std::cell::RefCell;
+use candid::{candid_method,Principal};
 use company::comp::{CompanyCollection, Company};
 use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
@@ -17,9 +18,9 @@ use ic_cdk::storage;
 use ic_cdk_macros::{init, pre_upgrade, query, update};
 use instant_distance::Search;
 use management::AccessControl;
-use message::msg::{ConnectionEntry, MessageEntry, Msg};
+// use message::msg::{ConnectionEntry, MessageEntry, Msg};
 use migration::migration::CompanyCollectionMigration;
-use std::cell::RefCell;
+// use std::cell::RefCell;
 
 ////////////////////OPENAI/////////////////////////
 use ic_cdk::api::management_canister::http_request::{
