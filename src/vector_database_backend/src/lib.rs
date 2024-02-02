@@ -6,8 +6,11 @@ pub mod management;
 pub mod message;
 pub mod migration;
 
-use candid::Principal;
-use company::comp::{Company, CompanyCollection};
+use std::time::{Duration, Instant, SystemTime};
+use std::thread::sleep;
+use std::cell::RefCell;
+use company::comp::{CompanyCollection, Company};
+use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
 use database::index::Vector;
 use ic_cdk::storage;
@@ -83,9 +86,13 @@ fn register(description: String) -> Result<u32, String> {
         Ok(comps.register(c))
     })
 }
+
+#[candid_method(update)]
 #[update]
-fn send_message(account: String, body: String, time: i64) -> Result<Option<()>, String> {
-    let caller: Principal = ic_cdk::caller();
+fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
+    let caller : Principal = ic_cdk::caller();
+    let now = Instant::now();
+    let now_now = SystemTime::now().clone();
     MSG.with(|msg| {
         let mut msg = msg.borrow_mut();
         let main_caller = caller.to_text();
@@ -96,12 +103,34 @@ fn send_message(account: String, body: String, time: i64) -> Result<Option<()>, 
     })
 }
 
+
+
+
+#[candid_method(query)]
 #[query]
 fn get_messages(account: String) -> Vec<MessageEntry> {
     let caller = ic_cdk::caller();
     MSG.with(|msg| {
         let msg = msg.borrow();
         return msg.get_messages(account, caller.to_text());
+    })
+}
+
+#[candid_method(update)]
+#[update]
+async fn set_connection_completed(connection_id : usize) -> bool {
+    // let caller = ic_cdk::caller();
+    MSG.with(|msg| {
+        return msg.borrow_mut().set_connection_completed(connection_id)
+    })
+}
+
+#[candid_method(query)]
+#[query]
+async fn is_complete(account : String) -> bool {
+    let caller = ic_cdk::caller();
+    MSG.with(|msg| {
+        return msg.borrow().is_complete(caller.to_text(), account)
     })
 }
 
@@ -153,13 +182,20 @@ fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<String
                         result = format!("hh");
                         // Ok(result);
                         // Ok(String::from("bla bla bal"));
-                    } else {
-                        let template = String::from("find a solution to this question ");
-                        println!("the Question is {}", raw_q);
+                    }
+                    else {
+                            /// if corredtness better
+                            /// chatgpt comes it
+                            /// and 
+                        let qa = ("Hi, This is the question: {} \n This is the answer: {}", raw_q);
+                        let template =  String::from("find a solution to this question ");
+                        // println!("the Question is {}", raw_q);
                         // println!("the Answer is {}", context);
                         println!("the Template is {}", template);
                         result = format!("hh");
                     }
+
+                    // let content =  "Hi chatgpt i want to do something for me" + " Here is the dodcunsas";
                     Ok::<std::string::String, String>(result);
                 } else {
                     Ok::<std::string::String, String>(result);

@@ -29,6 +29,7 @@ pub struct Connection {
     pub account1 : String, // type Principal
     pub account2 : String, // type Principal
     pub created_at : u8,
+    
 }
 
 use std::collections::HashMap;
@@ -52,6 +53,7 @@ pub struct ConnectionEntry {
     account1: String, // Assuming Principal is a string in Motoko
     account2: String, // Assuming Principal is a string in Motoko
     created_at: i64,
+    completed : bool,
 }
 
 #[derive(CandidType)]
@@ -120,6 +122,7 @@ impl Msg {
                 account1: account.clone(),
                 account2: caller.clone(),
                 created_at: time,
+                completed : false,
             };
             self.connection_hash_map.insert(self.connection_id, new_connection.clone());
             self.connection_id += 1;
@@ -161,6 +164,7 @@ impl Msg {
                     account1: account.clone(),
                     account2: caller.clone(),
                     created_at: time,
+                    completed : false,
                 };
                 self.connection_hash_map.insert(self.connection_id, new_connection.clone());
                 self.connection_id += 1;
@@ -180,73 +184,6 @@ impl Msg {
         Some(())
     }
     
-    // fn send_messages(&mut self, account: String, caller : String, body: String, time : i64) -> Option<()> {
-    //     let mut sent = false;
-    //     let size = self.connection_hash_map.len();
-
-    //     if size == 0 {
-    //         let new_connection = ConnectionEntry {
-    //             id: self.connection_id,
-    //             account1: account.clone(),
-    //             account2: caller.clone(), 
-    //             created_at: time,
-    //         };
-    //         self.connection_hash_map.insert(self.connection_id, new_connection.clone());
-    //         self.connection_id += 1;
-
-    //         let new_message = MessageEntry {
-    //             id: self.message_id,
-    //             connection_id: new_connection.id,
-    //             sender: caller.clone(), 
-    //             body,
-    //             created_at: time,
-    //         };
-    //         self.message_hash_map.insert(self.message_id, new_message);
-    //         self.message_id += 1;
-
-    //         sent = true;
-    //     } else {
-    //         for (_, j) in self.connection_hash_map.iter() {
-    //             if (j.account1 == caller && j.account2 == account) || (j.account1 == account && j.account2 == caller) {
-    //                 let new_message = MessageEntry {
-    //                     id: self.message_id,
-    //                     connection_id: j.id,
-    //                     sender: caller.clone(), // Assuming caller is defined somewhere
-    //                     body,
-    //                     created_at: time,
-    //                 };
-    //                 self.message_hash_map.insert(self.message_id, new_message);
-    //                 self.message_id += 1;
-    //                 sent = true;
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     if !sent {
-    //         let new_connection = ConnectionEntry {
-    //             id: self.connection_id,
-    //             account1: account.clone(),
-    //             account2: caller.clone(), // Assuming caller is defined somewhere
-    //             created_at: time,
-    //         };
-    //         self.connection_hash_map.insert(self.connection_id, new_connection.clone());
-    //         self.connection_id += 1;
-
-    //         let new_message = MessageEntry {
-    //             id: self.message_id,
-    //             connection_id: new_connection.id,
-    //             sender: caller.clone(), // Assuming caller is defined somewhere
-    //             body : body.clone(),
-    //             created_at: time,
-    //         };
-    //         self.message_hash_map.insert(self.message_id, new_message);
-    //         self.message_id += 1;
-    //     }
-
-    //     Some(())
-    // }
-    
 
     pub fn get_messages(&self, account: String, caller : String) -> Vec<MessageEntry> {
         let mut msgs = Vec::new();
@@ -263,7 +200,7 @@ impl Msg {
     }
 
 
-    fn check_connection(&self, account: String, caller : String) -> bool {
+    pub fn check_connection(&self, account: String, caller : String) -> bool {
         for (_, j) in self.connection_hash_map.iter() {
             if (j.account1 == caller && j.account2 == account) || (j.account1 == account && j.account2 == caller) {
                 return true;
@@ -272,6 +209,26 @@ impl Msg {
         false
     }
 
+    pub fn set_connection_completed(&mut self, connection_id: usize) -> bool {
+        if let Some(connection) = self.connection_hash_map.get_mut(&connection_id) {
+            connection.completed = true;
+            return true;
+        } else {
+            return false; 
+        }
+    }
+
+
+    pub fn is_complete(&self, caller : String, account : String) -> bool {
+        for (_, j) in self.connection_hash_map.iter(){
+            if (j.account1 == caller && j.account2 == account) || (j.account1 == account && j.account2 == caller) {
+                return j.completed;
+            }
+        }
+        false
+    }
+
+    // update func 
 
     pub fn get_all_connections(&self, caller : String) -> Vec<ConnectionEntry> {
         let mut buff = Vec::new();
