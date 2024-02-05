@@ -6,6 +6,11 @@ pub mod company;
 pub mod migration;
 pub mod message;
 
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::future::Future;
+use async_std::task::block_on;
+// use tokio::runtime::Runtime;
 use std::cell::RefCell;
 use company::comp::{CompanyCollection, Company};
 use message::msg::{Msg, MessageEntry, ConnectionEntry};
@@ -118,14 +123,33 @@ async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
     MSG.with(|msg| msg.borrow().get_all_connections(caller))
 }
 
+
+
+// A simple executor for async tasks
+struct Executor<F: Future>(Pin<Box<F>>);
+
+impl<F: Future> Future for Executor<F> {
+    type Output = F::Output;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.0.as_mut().poll(cx)
+    }
+}
+
+// Function to run an async function without any external async runtime
+fn run_async<F: Future>(future: F) -> F::Output {
+    let executor = Executor(Box::pin(future));
+    futures::executor::block_on(executor)
+}
+
+
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
 /// or throws an error(String) 
 #[candid_method(query)]
-#[query]
-fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String, String> {
+async fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<String, String> {
     let mut result = String::from("");
     if q.len() != EMBEDDING_LENGTH {
-        return Err(String::from("query malformed"))
+        return Err(String::from("query malformed"));
     }
 
     COMP.with(|comp| {
@@ -141,31 +165,54 @@ fn get_similar(id: u32, raw_q:String, q: Vec<f64>, limit: i32) -> Result<String,
                     let correctness = first_element.0;
                     // let context = String::from(&finfirst_element.1);
                     if correctness < 0.6 {
-                      result = format!("hh");
+                        result = format!("hh");
                         // Ok(result);
                         // Ok(String::from("bla bla bal"));
                     }
                     else {
+                        let actual_response = &first_element.1.clone();
+                        let prompt = format!("Provided with a company information {:?}, please answer the user's question that {:?}.", actual_response, raw_q);
+                        // let handle = tokio::spawn(hello_openai(prompt));
+                        let hello_openai_response = block_on(hello_openai(prompt));
+                        // let hello_openai_response  =  tokio::runtime::Runtime::new().unwrap().block_on(hello_openai(prompt));
+                        // let hello_openai_response = Runtime::new()
+                        //     .unwrap()
+                        //     .block_on(hello_openai(prompt));
 
+                        // {
+                        //     Ok((response)) => {
+                        //         result = format!("hh {:?}", response);
+                        //         Ok(result)
+                        //     } Err((_)) => {
+                        //         Err(())
+                        //     }
+                        // };
+                        
+                        
+                            // chatgpt comes it
+                            // and 
+                        
                         let template =  String::from("find a solution to this question ");
-                        println!("the Question is {}", raw_q);
+                        // println!("the Question is {}", raw_q);
                         // println!("the Answer is {}", context);
                         println!("the Template is {}", template);
-                        result = format!("hh");
-                        
-                        
+                        // match hello_openai_response {
+                            
+                        // }
+
+                        result = format!("hh {:?}", hello_openai_response);
                     }
-                    Ok::<std::string::String, String>(result);
 
-                }else {
-                    Ok::<std::string::String, String>(result);
+                    // let content =  "Hi chatgpt i want to do something for me" + " Here is the dodcunsas";
+                    // Ok::<std::string::String, String>(result);
+                } else {
+                    // Ok::<std::string::String, String>(result);
                 }
-                
-                Ok(String::from("No value for your question"))
-            },
-            None => Err(String::from("No such comp"))
-        }
 
+                Ok(String::from("No value for your question"))
+            }
+            None => Err(String::from("No such comp")),
+        }
     })
 }
 
@@ -300,9 +347,11 @@ fn set_acl_enabled(enable: bool) -> Result<(), String> {
 
 //////////////////////OPENAI//////////////////////////
 #[update]
-async fn hello_openai() -> Result<String, String> {
+async fn hello_openai(prompt : String) -> Result<String, String> {
     //2. SETUP ARGUMENTS FOR HTTP GET request
 
+
+    
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
@@ -323,7 +372,7 @@ async fn hello_openai() -> Result<String, String> {
         GPT3_5_TURBO.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("Hello OpenAI, what is 2 + 2!")),
+            content: chat_completion::Content::Text(String::from(prompt)),
             name: None,
         }],
     );
