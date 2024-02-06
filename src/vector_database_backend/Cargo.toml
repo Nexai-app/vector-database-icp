@@ -14,12 +14,9 @@ ic-cdk = "0.12"
 ic-cdk-macros = "0.8.3"
 ic-cdk-timers = "0.1" # Feel free to remove this dependency if you don't need timers
 ic-stable-structures = "0.5.6"
-instant-distance = { git = "https://github.com/bianyuanop/instant-distance", version = "0.6.1" }
-nalgebra = { version = "0.32.3", default-features = false, features = [
-  "libm",
-  "alloc",
-] }
-getrandom = { version = "0.2", features = ["js"] }
+instant-distance = { git = "https://github.com/bianyuanop/instant-distance", version = "0.6.1"}
+nalgebra = {version = "0.32.3", default-features = false, features = ["libm", "alloc"]}
+getrandom = { version = "0.2", features = ["js"]}
 serde = "1.0.152"
 serde_derive = "1.0.152"
 serde_json = "1.0.93"
