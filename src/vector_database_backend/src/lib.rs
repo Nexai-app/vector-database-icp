@@ -137,7 +137,7 @@ async fn get_all_connections(caller: String) -> Vec<ConnectionEntry> {
 }
 
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
-/// or throws an error(String)
+/// or throws an error(String) 
 #[query]
 fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<String, String> {
     let mut result = String::from("");
@@ -163,21 +163,37 @@ fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<String
                         // Ok(String::from("bla bla bal"));
                     }
                     else {
-                            /// if corredtness better
-                            /// chatgpt comes it
-                            /// and 
-                        let qa = ("Hi, This is the question: {} \n This is the answer: {}", raw_q);
+                        let actual_response = &first_element.1.clone();
+                        let prompt = format!("Provided with a company information {:?}, please answer the user's question that {:?}.", actual_response, raw_q);
+                        let hello_openai_response  =  tokio::runtime::Runtime::new().unwrap().block_on(hello_openai(prompt));
+                        // {
+                        //     Ok((response)) => {
+                        //         result = format!("hh {:?}", response);
+                        //         Ok(result)
+                        //     } Err((_)) => {
+                        //         Err(())
+                        //     }
+                        // };
+                        
+                        
+                            // chatgpt comes it
+                            // and 
+                        
                         let template =  String::from("find a solution to this question ");
                         // println!("the Question is {}", raw_q);
                         // println!("the Answer is {}", context);
                         println!("the Template is {}", template);
-                        result = format!("hh");
+                        // match hello_openai_response {
+                            
+                        // }
+
+                        result = format!("hh {:?}", hello_openai_response);
                     }
 
                     // let content =  "Hi chatgpt i want to do something for me" + " Here is the dodcunsas";
-                    Ok::<std::string::String, String>(result);
+                    // Ok::<std::string::String, String>(result);
                 } else {
-                    Ok::<std::string::String, String>(result);
+                    // Ok::<std::string::String, String>(result);
                 }
 
                 Ok(String::from("No value for your question"))
