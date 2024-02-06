@@ -142,6 +142,28 @@ fn run_async<F: Future>(future: F) -> F::Output {
     futures::executor::block_on(executor)
 }
 
+#[candid_method(query)]
+#[query]
+fn get_similar2(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, String> {
+    if q.len() != EMBEDDING_LENGTH {
+        return Err(String::from("query malformed"))
+    }
+
+    COMP.with(|comp| {
+        let comps = comp.borrow();
+
+        match comps.get(&id) {
+            Some(c) => {
+                let mut search = Search::default();
+                let key = Vector::from(q);
+                Ok(c.db.query(&key, &mut search, limit))
+            },
+            None => Err(String::from("No such comp"))
+        }
+
+    })
+}
+
 
 /// get similar `limit` numbers of records([(similarity:f64, question-answer-pair:string)]) from vector database
 /// or throws an error(String) 
@@ -213,8 +235,8 @@ async fn get_similar(id: u32, raw_q: String, q: Vec<f64>, limit: i32) -> Result<
             }
             None => Err(String::from("No such comp")),
         }
-    })
-}
+    })}
+
 
 /// append keys(embeddings) and values(question-answer-pairs) into database
 /// it either returns Ok() or throw an error(Unprivileged)
