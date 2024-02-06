@@ -34,7 +34,7 @@ pub struct Connection {
 
 use std::collections::HashMap;
 
-struct Message {
+pub struct Message {
     id: usize,
     customer: String, // Assuming Principal is a string in Motoko
     body: String,
