@@ -488,7 +488,7 @@ fn transform(raw: TransformArgs) -> HttpResponse {
 }
 
 #[update]
-async fn hello_openai2(id: u32, q: Vec<f64>, limit: i32) -> Result<String, String> {
+async fn hello_openai2(id: u32, raw_q : String, q: Vec<f64>, limit: i32) -> Result<String, String> {
     // Call get_similar2 function
     let similar_result = get_similar2(id, q, limit);
 
@@ -501,6 +501,8 @@ async fn hello_openai2(id: u32, q: Vec<f64>, limit: i32) -> Result<String, Strin
                 .map(|(similarity_score, item_string)| format!("Similarity: {:.2}, Item: {}", similarity_score, item_string))
                 .collect::<Vec<String>>()
                 .join("\n");
+
+            let prompt = format!("Provided with a company information {:?}, please answer the user's question that {:?}.", content, raw_q);
 
             // Setup arguments for HTTP GET request
             let url = "https://api.openai.com/v1/chat/completions";
@@ -521,7 +523,7 @@ async fn hello_openai2(id: u32, q: Vec<f64>, limit: i32) -> Result<String, Strin
                 GPT3_5_TURBO.to_string(),
                 vec![chat_completion::ChatCompletionMessage {
                     role: chat_completion::MessageRole::user,
-                    content: chat_completion::Content::Text(content),
+                    content: chat_completion::Content::Text(prompt),
                     name: None,
                 }],
             );
