@@ -396,7 +396,7 @@ async fn hello_openai(prompt : String) -> Result<String, String> {
         GPT3_5_TURBO.to_string(),
         vec![chat_completion::ChatCompletionMessage {
             role: chat_completion::MessageRole::user,
-            content: chat_completion::Content::Text(String::from("the result from get similar should be here")),
+            content: chat_completion::Content::Text(String::from(prompt)),
             name: None,
         }],
     );
