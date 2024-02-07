@@ -379,7 +379,7 @@ async fn hello_openai(prompt : String) -> Result<String, String> {
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
-    let api_key = "sk-xxx";
+    let api_key = "sk-aaa";
 
     let request_headers = vec![
         HttpHeader {
@@ -422,8 +422,8 @@ async fn hello_openai(prompt : String) -> Result<String, String> {
             ic_cdk::api::print(format!("{:?}", str_body));
             if (200u32..=299u32).contains(&response.status) {
                 let result: String = format!(
-                    "{}. See more info of the request sent at: {}/inspect",
-                    str_body, url
+                    "{}",
+                    str_body
                 );
 
                 Ok(result)
