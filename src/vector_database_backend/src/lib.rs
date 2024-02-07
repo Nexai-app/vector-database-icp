@@ -379,7 +379,7 @@ async fn hello_openai(prompt : String) -> Result<String, String> {
     // 2.1 Setup the URL
 
     let url = "https://api.openai.com/v1/chat/completions";
-    let api_key = "sk-aaa";
+    let api_key = "sk-xx";
 
     let request_headers = vec![
         HttpHeader {
@@ -506,7 +506,7 @@ async fn hello_openai2(id: u32, raw_q : String, q: Vec<f64>, limit: i32) -> Resu
 
             // Setup arguments for HTTP GET request
             let url = "https://api.openai.com/v1/chat/completions";
-            let api_key = "sk-xxx";
+            let api_key = "sk-xx";
 
             let request_headers = vec![
                 HttpHeader {
