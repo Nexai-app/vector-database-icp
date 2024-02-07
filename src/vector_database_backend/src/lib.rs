@@ -538,7 +538,7 @@ async fn hello_openai2(id: u32, raw_q : String, q: Vec<f64>, limit: i32) -> Resu
                 method: HttpMethod::POST,
                 headers: request_headers,
                 body: request_body,
-                transform: None,
+                transform: None, //optional for request
             };
 
             // Perform HTTP GET request and handle the response
@@ -549,8 +549,8 @@ async fn hello_openai2(id: u32, raw_q : String, q: Vec<f64>, limit: i32) -> Resu
                     ic_cdk::api::print(format!("{:?}", str_body));
                     if (200u32..=299u32).contains(&response.status) {
                         let result: String = format!(
-                            "{}. See more info of the request sent at: {}/inspect",
-                            str_body, url
+                            "{}",
+                            str_body
                         );
 
                         Ok(result)
