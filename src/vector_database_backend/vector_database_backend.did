@@ -6,6 +6,7 @@ type AccessControl = record {
 };
 type ConnectionEntry = record {
   id : nat64;
+  completed : bool;
   created_at : int64;
   account1 : text;
   account2 : text;
@@ -24,9 +25,10 @@ type MessageEntry = record {
   connection_id : nat64;
 };
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : text; Err : text };
-type Result_2 = variant { Ok : nat32; Err : text };
-type Result_3 = variant { Ok : opt null; Err : text };
+type Result_1 = variant { Ok : vec record { float64; text }; Err : text };
+type Result_2 = variant { Ok : text; Err : text };
+type Result_3 = variant { Ok : nat32; Err : text };
+type Result_4 = variant { Ok : opt null; Err : text };
 type TransformArgs = record { context : vec nat8; response : HttpResponse };
 service : () -> {
   add_accesser : (principal) -> (bool);
@@ -35,13 +37,16 @@ service : () -> {
   build_index : (nat32) -> (Result);
   get_all_connections : (text) -> (vec ConnectionEntry) query;
   get_messages : (text) -> (vec MessageEntry) query;
-  get_similar : (nat32, text, vec float64, int32) -> (Result_1) query;
-  hello_openai : () -> (Result_1);
-  register : (text) -> (Result_2);
+  get_similar2 : (nat32, vec float64, int32) -> (Result_1) query;
+  hello_openai : (text) -> (Result_2);
+  hello_openai2 : (nat32, text, vec float64, int32) -> (Result_2);
+  is_complete : (text) -> (bool) query;
+  register : (text) -> (Result_3);
   remove_accesser : (principal) -> (bool);
   remove_manager : (principal) -> (bool);
-  send_message : (text, text, int64) -> (Result_3);
+  send_message : (text, text, int64) -> (Result_4);
   set_acl_enabled : (bool) -> (Result);
+  set_connection_completed : (nat64) -> (bool);
   states : () -> (opt AccessControl) query;
   transform : (TransformArgs) -> (HttpResponse) query;
 }
