@@ -14,7 +14,7 @@ pub mod migration;
 use std::time::Instant;
 use std::time::SystemTime;
 use std::cell::RefCell;
-use candid::{candid_method,Principal};
+use candid::Principal;
 use company::comp::{CompanyCollection, Company};
 use message::msg::{Msg, MessageEntry, ConnectionEntry};
 use config::EMBEDDING_LENGTH;
@@ -96,8 +96,6 @@ fn register(description: String) -> Result<u32, String> {
 #[update]
 fn send_message(account : String, body : String, time : i64) -> Result<Option<()>, String> {
     let caller : Principal = ic_cdk::caller();
-    let now = Instant::now();
-    let now_now = SystemTime::now().clone();
     MSG.with(|msg| {
         let mut msg = msg.borrow_mut();
         let main_caller = caller.to_text();

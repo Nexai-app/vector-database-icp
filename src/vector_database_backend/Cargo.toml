@@ -20,11 +20,11 @@ nalgebra = { version = "0.32.3", default-features = false, features = [
   "alloc",
 ] }
 getrandom = { version = "0.2", features = ["js"] }
+mio = "0.8.10"
 serde = "1.0.152"
 serde_derive = "1.0.152"
 serde_json = "1.0.93"
 serde_bytes = "0.11.9"
-# tokio = { version = "1", features = ["full"] }
 
 
 # [dev-dependencies]

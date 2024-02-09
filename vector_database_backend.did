@@ -1,0 +1,48 @@
+type AccessControl = record {
+  accessers : vec principal;
+  managers : vec principal;
+  owner : principal;
+  access_list_enabled : bool;
+};
+type ConnectionEntry = record {
+  id : nat64;
+  created_at : int64;
+  account1 : text;
+  account2 : text;
+};
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : vec nat8;
+  headers : vec HttpHeader;
+};
+type MessageEntry = record {
+  id : nat64;
+  body : text;
+  created_at : int64;
+  sender : text;
+  connection_id : nat64;
+};
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : vec record { float64; text }; Err : text };
+type Result_2 = variant { Ok : text; Err : text };
+type Result_3 = variant { Ok : nat32; Err : text };
+type Result_4 = variant { Ok : opt null; Err : text };
+type TransformArgs = record { context : vec nat8; response : HttpResponse };
+service : () -> {
+  add_accesser : (principal) -> (bool);
+  add_manager : (principal) -> (bool);
+  append_keys_values : (nat32, vec vec float64, vec text) -> (Result);
+  build_index : (nat32) -> (Result);
+  get_all_connections : (text) -> (vec ConnectionEntry) query;
+  get_messages : (text) -> (vec MessageEntry) query;
+  get_similar : (nat32, vec float64, int32) -> (Result_1) query;
+  hello_openai : () -> (Result_2);
+  register : (text) -> (Result_3);
+  remove_accesser : (principal) -> (bool);
+  remove_manager : (principal) -> (bool);
+  send_message : (text, text, int64) -> (Result_4);
+  set_acl_enabled : (bool) -> (Result);
+  states : () -> (opt AccessControl) query;
+  transform : (TransformArgs) -> (HttpResponse) query;
+}
