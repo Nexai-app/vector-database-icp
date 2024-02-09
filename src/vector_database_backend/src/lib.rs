@@ -11,8 +11,8 @@ pub mod migration;
 // use std::future::Future;
 // use async_std::task::block_on;
 // use tokio::runtime::Runtime;
-use std::time::Instant;
-use std::time::SystemTime;
+// use std::time::Instant;
+// use std::time::SystemTime;
 use std::cell::RefCell;
 use candid::Principal;
 use company::comp::{CompanyCollection, Company};
@@ -354,7 +354,7 @@ fn set_acl_enabled(enable: bool) -> Result<(), String> {
     Ok(())
 }
 
-#[candid_method(query)]
+
 #[query]
 fn get_similar2(id: u32, q: Vec<f64>, limit: i32) -> Result<Vec<(f64, String)>, String> {
     if q.len() != EMBEDDING_LENGTH {
