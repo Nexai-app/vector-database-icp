@@ -12,7 +12,8 @@ crate-type = ["cdylib"]
 candid = "0.10.2"
 ic-cdk = "0.12"
 ic-cdk-macros = "0.8.3"
-ic-cdk-timers = "0.1" # Feel free to remove this dependency if you don't need timers
+ic-cdk-timers = "0.1" 
+ic-stable-memory = "0.4"
 ic-stable-structures = "0.5.6"
 instant-distance = { git = "https://github.com/bianyuanop/instant-distance", version = "0.6.1" }
 nalgebra = { version = "0.32.3", default-features = false, features = [

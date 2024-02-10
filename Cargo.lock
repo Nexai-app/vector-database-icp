@@ -580,6 +580,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-stable-memory"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e35aaf578cae9f1c3f0d50742099bda5e5ee1f3c2cb29315233d0852cfc6067f"
+dependencies = [
+ "candid 0.8.4",
+ "ic-cdk 0.7.4",
+ "ic-stable-memory-derive",
+ "num-bigint",
+ "serde",
+ "serde_bytes",
+ "sha2",
+ "zwohash",
+]
+
+[[package]]
+name = "ic-stable-memory-derive"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fdb3a4f5e97e0d9a05fa6096214888c98ad405586c338fb99a7a6f608c7fee3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "ic-stable-structures"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1459,6 +1486,7 @@ dependencies = [
  "ic-cdk 0.12.1",
  "ic-cdk-macros 0.8.4",
  "ic-cdk-timers",
+ "ic-stable-memory",
  "ic-stable-structures",
  "instant-distance",
  "mio",
@@ -1712,3 +1740,9 @@ checksum = "b7cf47b659b318dccbd69cc4797a39ae128f533dce7902a1096044d1967b9c16"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "zwohash"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "beaf63e0740cea93ca85de39611a8bc8262a50adacd6321cd209a123676d0447"

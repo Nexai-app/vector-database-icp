@@ -35,7 +35,6 @@ impl CompanyCollection {
         self.owner_mapping.insert(comp.owner.clone(), self.counter-1);
         self.companies.insert(self.counter, comp);
         self.counter += 1;
-
         self.counter - 1 
     }
 

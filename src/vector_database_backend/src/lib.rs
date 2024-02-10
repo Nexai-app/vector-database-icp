@@ -21,6 +21,12 @@ use config::EMBEDDING_LENGTH;
 use database::index::Vector;
 use ic_cdk::storage;
 use ic_cdk_macros::{init, pre_upgrade, query, update};
+use ic_stable_memory::collections::SVec;
+use ic_stable_memory::derive::{CandidAsDynSizeBytes, StableType};
+use ic_stable_memory::{
+  retrieve_custom_data, stable_memory_init, stable_memory_post_upgrade,
+  stable_memory_pre_upgrade, store_custom_data, SBox,
+};
 use instant_distance::Search;
 use management::AccessControl;
 // use message::msg::{ConnectionEntry, MessageEntry, Msg};
@@ -58,8 +64,15 @@ fn pre_upgrade() {
     let acl = ACL.with(|a| a.replace(AccessControl::default()));
 
     let comp = COMP.with(|c| c.replace(CompanyCollection::new()));
+    // let msg = MSG.with(|m| m.replace(Msg::new()));
+    // let msg = MSG.with(|m| {
+    //     m.borrow().clone()
+    // });
+
+    
 
     let comp_migrate = CompanyCollectionMigration::from(comp);
+    let msg_state = 
 
     storage::stable_save((acl, comp_migrate)).expect("should save acl and comp to stable storage");
 }

@@ -5,6 +5,7 @@ use nalgebra::{SVector, DVector};
 
 use crate::database::{db::Database, index::{Vector, generate_index}};
 use crate::company::comp::{CompanyCollection, Company};
+use crate::message::msg::{Msg, Message, MessageEntry, ConnectionEntry};
 use crate::config::EMBEDDING_LENGTH;
 
 
@@ -72,10 +73,29 @@ impl Into<Company> for CompanyMigration {
         let owner = self.owner;
         let description = self.description;
         let db = self.db.into();
-
         Company { owner, description, db }
     }
 }
+
+// For stabilizing the messaging feat in the vdb canister
+// #[derive(Clone, Deserialize)]
+// pub struct MessageCollectionMigration {
+//     pub connection_id: usize,
+//     pub message_id: usize,
+//     pub messages: Vec<Message>,
+//     pub connection_hash_map: HashMap<usize, ConnectionEntry>,
+//     pub message_hash_map: HashMap<usize, MessageEntry>,
+// }
+
+// impl From<MessageCollection> for MessageCollectionMigration {
+//     fn from(value : MesageCollection) -> Self {
+//         connection_id = value.connection_id;
+//         message_id = value.message_id;
+//         messages  Vec<Message>,
+//         connection_hash_map: HashMap<usize, ConnectionEntry>,
+//         message_hash_map: HashMap<usize, MessageEntry>, 
+//     }
+// }
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct CompanyCollectionMigration {
